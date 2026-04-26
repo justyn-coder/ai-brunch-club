@@ -70,10 +70,16 @@ main, header, footer { position: relative; z-index: 1; }
   transform: translateY(0);
 }
 
-/* hairline rules used in chapter marks */
+/* hairline rules used in chapter marks — sage temperature so they read as
+   section dividers rather than structural rules */
 .hairline {
   height: 1px;
-  background: rgba(58, 22, 34, 0.85);
+  background: linear-gradient(
+    to right,
+    rgba(63, 90, 58, 0.55) 0%,
+    rgba(63, 90, 58, 0.25) 60%,
+    transparent 100%
+  );
 }
 
 /* status pill glyph alignment */

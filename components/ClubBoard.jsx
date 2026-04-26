@@ -91,6 +91,7 @@ export default function ClubBoard() {
   const [guests, setGuests] = useState([]);
   const [polls, setPolls] = useState([]);
   const [pollOptions, setPollOptions] = useState([]);
+  const [pollResponses, setPollResponses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -101,16 +102,18 @@ export default function ClubBoard() {
 
   async function fetchData() {
     setLoading(true);
-    const [eventsRes, guestsRes, pollsRes, optionsRes] = await Promise.all([
+    const [eventsRes, guestsRes, pollsRes, optionsRes, respRes] = await Promise.all([
       supabase.from('abc_events').select('*').order('edition_number', { ascending: true }),
       supabase.from('abc_guests').select('*').order('invited_at', { ascending: false }),
       supabase.from('abc_date_polls').select('*'),
-      supabase.from('abc_date_poll_options').select('id, poll_id, proposed_date'),
+      supabase.from('abc_date_poll_options').select('id, poll_id, proposed_date, proposed_time'),
+      supabase.from('abc_date_poll_responses').select('option_id, member, response'),
     ]);
     setEvents(eventsRes.data || []);
     setGuests(guestsRes.data || []);
     setPolls(pollsRes.data || []);
     setPollOptions(optionsRes.data || []);
+    setPollResponses(respRes.data || []);
     setLoading(false);
   }
 
@@ -135,10 +138,13 @@ export default function ClubBoard() {
               <div className="text-[11px] uppercase tracking-[0.16em] text-wine/75 mt-1">Vol. I · New Toronto</div>
             </div>
           </div>
-          <div className="text-right">
-            <div className="text-[11px] uppercase tracking-[0.16em] text-wine/75">Members</div>
-            <div className="font-display italic font-light text-[14px] mt-1 tracking-tight">
-              Justyn · Brad · John
+          <div className="flex items-start gap-2 justify-end">
+            <span className="w-2 h-2 rounded-full bg-butter mt-2 shrink-0" aria-hidden="true" />
+            <div className="text-right">
+              <div className="text-[11px] uppercase tracking-[0.16em] text-wine/75">Members</div>
+              <div className="font-display italic font-light text-[14px] mt-1 tracking-tight">
+                Justyn · Brad · John
+              </div>
             </div>
           </div>
         </div>
@@ -154,6 +160,12 @@ export default function ClubBoard() {
             >
               AI
             </div>
+            {/* hairline tether — links AI to the period in Club. */}
+            <span
+              className="hidden sm:block absolute bg-wine/30"
+              style={{ top: '54%', right: '-6%', height: 1, width: '24%' }}
+              aria-hidden="true"
+            />
           </div>
 
           <div className="reveal pt-0 sm:pt-3" style={{ '--reveal-delay': '120ms' }}>
@@ -180,15 +192,32 @@ export default function ClubBoard() {
       <ChapterMark roman="I" label="The next gathering" className="px-6 sm:px-10 max-w-5xl mx-auto" />
 
       {/* FRONTISPIECE — current edition */}
-      <section className="px-6 sm:px-10 max-w-5xl mx-auto mt-6 mb-20 sm:mb-24">
-        <div className="reveal">
-          {/* TOP ROW — numeral, date/venue, tally */}
-          <div className="grid grid-cols-1 sm:grid-cols-[auto_1fr_auto] gap-x-8 gap-y-6 items-start">
-            {/* numeral with eyebrow ABOVE so nothing collides */}
-            <div>
-              <div className="text-[11px] uppercase tracking-[0.18em] text-wine/75 mb-1">Brunch №</div>
+      <section className="px-6 sm:px-10 max-w-5xl mx-auto mt-6 mb-16 sm:mb-20">
+        <div className="grid grid-cols-1 sm:grid-cols-[260px_1fr_auto] gap-x-8 gap-y-8 items-start reveal">
+          {/* oversized numeral with sage shadow */}
+          <div className="relative">
+            <div className="text-[11px] uppercase tracking-[0.18em] text-wine/75 mb-1">Brunch №</div>
+            <div className="relative" style={{ height: 'clamp(96px, 16vw, 180px)' }}>
+              {/* sage shadow numeral */}
               <div
-                className="font-display font-light text-wine"
+                aria-hidden="true"
+                className="absolute font-display font-light text-forest-soft pointer-events-none"
+                style={{
+                  fontSize: 'clamp(96px, 16vw, 180px)',
+                  lineHeight: 0.95,
+                  letterSpacing: '-0.04em',
+                  transform: 'translate(5px, 5px)',
+                  opacity: 0.7,
+                }}
+              >
+                <span className="font-extralight italic">
+                  {currentEvent ? String(currentEvent.edition_number).padStart(2, '0').charAt(0) : '0'}
+                </span>
+                {currentEvent ? String(currentEvent.edition_number).padStart(2, '0').charAt(1) : '1'}
+              </div>
+              {/* real numeral */}
+              <div
+                className="relative font-display font-light text-wine"
                 style={{ fontSize: 'clamp(96px, 16vw, 180px)', lineHeight: 0.95, letterSpacing: '-0.04em' }}
               >
                 <span className="font-extralight italic">
@@ -197,154 +226,276 @@ export default function ClubBoard() {
                 {currentEvent ? String(currentEvent.edition_number).padStart(2, '0').charAt(1) : '1'}
               </div>
             </div>
+          </div>
 
-            {/* date + venue */}
-            <div className="sm:border-l sm:border-wine/30 sm:pl-8 sm:self-stretch sm:pt-7">
-              <div className="text-[11px] uppercase tracking-[0.18em] text-wine/75 mb-2">The next gathering</div>
-              <div className="font-display font-medium text-2xl sm:text-[32px] leading-[1.1] tracking-tight max-w-md text-wine">
+          {/* hairline rule + hung copy */}
+          <div className="sm:border-l sm:border-wine/30 sm:pl-8 sm:self-stretch sm:pt-7">
+            {/* GUESTS OF HONOUR — primary line */}
+            <div className="text-[11px] uppercase tracking-[0.18em] text-wine/75 mb-3">
+              Guests of honour
+            </div>
+            {(() => {
+              const honoured = currentGuests.filter((g) => g.status === 'confirmed' || g.status === 'maybe');
+              if (honoured.length === 0) {
+                return (
+                  <div className="font-display italic font-light text-2xl sm:text-[28px] leading-[1.15] tracking-tight text-wine/65 max-w-md">
+                    To be sworn.
+                  </div>
+                );
+              }
+              return (
+                <div
+                  className="font-display italic font-light leading-[1.05] tracking-tight max-w-md text-wine"
+                  style={{ fontSize: 'clamp(28px, 4.4vw, 44px)' }}
+                >
+                  {honoured.map((g, i) => (
+                    <span key={g.id} className={g.status === 'maybe' ? 'text-wine/70' : ''}>
+                      {g.name}
+                      {i < honoured.length - 1 && <span className="text-pinky-bright not-italic mx-1.5">·</span>}
+                    </span>
+                  ))}
+                </div>
+              );
+            })()}
+
+            {/* date — demoted to smallcap, with sage ring date dot */}
+            <div className="mt-5 flex items-center gap-2.5 flex-wrap">
+              <span className="relative inline-flex items-center justify-center" style={{ width: 14, height: 14 }} aria-hidden="true">
+                <span className="absolute inset-0 rounded-full border border-forest-soft" />
+                <span className="w-1.5 h-1.5 rounded-full bg-pinky-bright" />
+              </span>
+              <span className="text-[12px] uppercase tracking-[0.16em] text-wine font-medium">
                 {currentEvent?.event_date ? formatLongDate(currentEvent.event_date) : 'Date to be sworn'}
-              </div>
-              <div className="mt-3 flex items-center gap-2.5">
-                <span className="w-2 h-2 rounded-full bg-pinky-bright" />
-                <span className="text-[12px] uppercase tracking-[0.16em] text-wine/85 font-medium">
-                  Pinky Swear · New Toronto
-                </span>
-              </div>
-              {currentEvent?.notes && (
-                <p className="mt-4 max-w-sm font-display italic font-light text-[15px] leading-[1.6] text-wine/85">
-                  &ldquo;{currentEvent.notes}&rdquo;
-                </p>
-              )}
+              </span>
+              <span className="text-wine/30">·</span>
+              <span className="text-[12px] uppercase tracking-[0.16em] text-wine/75">
+                Pinky Swear · New Toronto
+              </span>
             </div>
 
-            {/* tally */}
-            <div className="sm:text-right sm:pl-8 sm:pt-7 sm:min-w-[160px]">
-              <div className="text-[11px] uppercase tracking-[0.18em] text-wine/75 mb-2">Pinky sworn</div>
-              <div className="flex items-baseline sm:justify-end gap-1.5">
-                <span
-                  className="font-display font-light text-pinky-bright"
-                  style={{ fontSize: 'clamp(56px, 8vw, 80px)', lineHeight: 0.9, letterSpacing: '-0.04em' }}
-                >
-                  {String(confirmedCount).padStart(2, '0')}
-                </span>
-                <span className="font-display italic font-light text-[28px] text-wine/65 tracking-tight">
-                  /{String(totalSeats).padStart(2, '0')}
-                </span>
-              </div>
-              {pendingCount > 0 && (
-                <div className="text-[11px] uppercase tracking-[0.16em] text-wine/75 mt-2 font-medium">
-                  {pendingCount} awaiting reply
-                </div>
-              )}
-              <div className="mt-3 flex sm:justify-end gap-1.5">
-                {currentGuests.map((g) => (
-                  <span
-                    key={g.id}
-                    title={`${g.name} · ${STATUS_LABELS[g.status]}`}
-                    className={`w-1.5 h-1.5 rounded-full ${STATUS_DOT[g.status]}`}
-                  />
-                ))}
-              </div>
+            {currentEvent?.notes && (
+              <p className="mt-5 max-w-sm font-display italic font-light text-[15px] leading-[1.65] text-wine/85">
+                &ldquo;{currentEvent.notes}&rdquo;
+              </p>
+            )}
+
+            {/* settings row */}
+            <div className="mt-7 flex items-center gap-4 text-[11px] uppercase tracking-[0.16em] flex-wrap">
+              <button
+                onClick={() => setShowEventEditor(true)}
+                className="text-wine/75 hover:text-wine transition-colors"
+              >
+                Edit edition
+              </button>
+              <span className="text-wine/30">·</span>
+              <button
+                onClick={async () => {
+                  const next = (events.reduce((m, e) => Math.max(m, e.edition_number), 0) || 0) + 1;
+                  await supabase.from('abc_events').insert({ edition_number: next, status: 'planning' });
+                  await fetchData();
+                }}
+                className="text-wine/75 hover:text-wine transition-colors"
+              >
+                + New edition
+              </button>
             </div>
           </div>
 
-          {/* ACTION CARDS */}
-          {currentEvent && (() => {
-            const eventPoll = polls.find((p) => p.event_id === currentEvent.id);
-            const eventOptions = eventPoll ? pollOptions.filter((o) => o.poll_id === eventPoll.id) : [];
-            const dateLocked = !!currentEvent.event_date && eventPoll?.status === 'decided';
-            const guestsForEdition = currentGuests;
-            const composedCount = guestsForEdition.filter((g) => Array.isArray(g.seed_questions) && g.seed_questions.length === 3).length;
-            const seedTarget = guestsForEdition.length;
-            return (
-              <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Link
-                  href={`/edition/${currentEvent.id}/poll`}
-                  className="group block border border-wine/20 hover:border-forest hover:bg-forest-soft/20 rounded-sm p-5 sm:p-6 transition-colors"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="text-[11px] uppercase tracking-[0.18em] text-forest font-semibold">
-                      Date poll
-                    </div>
-                    <span className="font-display italic text-2xl text-wine/40 group-hover:text-forest transition-colors">→</span>
-                  </div>
-                  <div className="mt-2 font-display italic font-light text-2xl text-wine leading-tight tracking-tight">
-                    {dateLocked ? 'Date is locked' : 'When shall we meet?'}
-                  </div>
-                  <div className="mt-2 text-[14px] text-wine/85 leading-snug">
-                    {eventOptions.length === 0
-                      ? 'No dates proposed yet. Auto-propose Sundays.'
-                      : `${eventOptions.length} option${eventOptions.length === 1 ? '' : 's'} on the table${dateLocked ? ' · decided' : ''}.`}
-                  </div>
-                </Link>
-
-                <Link
-                  href={`/edition/${currentEvent.id}`}
-                  className="group block border border-wine/20 hover:border-wine-soft hover:bg-wine/5 rounded-sm p-5 sm:p-6 transition-colors"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="text-[11px] uppercase tracking-[0.18em] text-wine-soft font-semibold">
-                      Seed cards
-                    </div>
-                    <span className="font-display italic text-2xl text-wine/40 group-hover:text-wine-soft transition-colors">→</span>
-                  </div>
-                  <div className="mt-2 font-display italic font-light text-2xl text-wine leading-tight tracking-tight">
-                    Three sharp openers
-                  </div>
-                  <div className="mt-2 text-[14px] text-wine/85 leading-snug">
-                    {seedTarget === 0
-                      ? 'Add guests first, then compose seed questions.'
-                      : `${composedCount} of ${seedTarget} composed${composedCount === seedTarget ? ' · ready to print' : ''}.`}
-                  </div>
-                </Link>
+          {/* tally — quieter on the right */}
+          <div className="sm:text-right sm:pl-8 sm:pt-7 sm:min-w-[140px]">
+            <div className="text-[11px] uppercase tracking-[0.18em] text-wine/75 mb-2">Pinky sworn</div>
+            <div className="flex items-baseline sm:justify-end gap-1.5">
+              <span
+                className="font-display font-light text-pinky-bright"
+                style={{ fontSize: 'clamp(48px, 7vw, 64px)', lineHeight: 0.9, letterSpacing: '-0.04em' }}
+              >
+                {String(confirmedCount).padStart(2, '0')}
+              </span>
+              <span className="font-display italic font-light text-[22px] text-wine/65 tracking-tight">
+                /{String(totalSeats).padStart(2, '0')}
+              </span>
+            </div>
+            {pendingCount > 0 && (
+              <div className="text-[11px] uppercase tracking-[0.16em] text-wine/75 mt-2 font-medium">
+                {pendingCount} awaiting reply
               </div>
-            );
-          })()}
-
-          {/* SETTINGS ROW */}
-          <div className="mt-6 flex items-center gap-5 text-[11px] uppercase tracking-[0.16em] flex-wrap">
-            <button
-              onClick={() => setShowEventEditor(true)}
-              className="text-wine/70 hover:text-wine transition-colors"
-            >
-              Edit edition
-            </button>
-            {currentEvent && (
-              <>
-                <span className="text-wine/30">·</span>
-                <a
-                  href={waShareToGroup({ event: currentEvent, kind: 'poll' })}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-forest hover:text-wine-soft font-medium transition-colors flex items-center gap-1.5"
-                >
-                  <WaIcon /> Share poll to group
-                </a>
-                <span className="text-wine/30">·</span>
-                <a
-                  href={waShareToGroup({ event: currentEvent, kind: 'cards' })}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-forest hover:text-wine-soft font-medium transition-colors flex items-center gap-1.5"
-                >
-                  <WaIcon /> Share cards
-                </a>
-              </>
             )}
-            <span className="text-wine/30">·</span>
-            <button
-              onClick={async () => {
-                const next = (events.reduce((m, e) => Math.max(m, e.edition_number), 0) || 0) + 1;
-                await supabase.from('abc_events').insert({ edition_number: next, status: 'planning' });
-                await fetchData();
-              }}
-              className="text-wine/70 hover:text-wine transition-colors"
-            >
-              + New edition
-            </button>
+            <div className="mt-3 flex sm:justify-end gap-1.5">
+              {currentGuests.map((g) => (
+                <span
+                  key={g.id}
+                  title={`${g.name} · ${STATUS_LABELS[g.status]}`}
+                  className={`w-1.5 h-1.5 rounded-full ${STATUS_DOT[g.status]}`}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </section>
+
+      {/* DATE POLL + SEED CARDS — differentiated rituals */}
+      {currentEvent && (() => {
+        const eventPoll = polls.find((p) => p.event_id === currentEvent.id);
+        const eventOptions = eventPoll
+          ? pollOptions
+              .filter((o) => o.poll_id === eventPoll.id)
+              .map((o) => ({
+                ...o,
+                votes: pollResponses.filter((r) => r.option_id === o.id && r.response === 'yes').length,
+                maybes: pollResponses.filter((r) => r.option_id === o.id && r.response === 'maybe').length,
+              }))
+              .sort((a, b) => (b.votes * 2 + b.maybes) - (a.votes * 2 + a.maybes) || a.proposed_date.localeCompare(b.proposed_date))
+          : [];
+        const dateLocked = !!eventPoll && eventPoll.status === 'decided';
+        const composedGuests = currentGuests.filter((g) => Array.isArray(g.seed_questions) && g.seed_questions.length === 3);
+        const composedCount = composedGuests.length;
+        const seedTarget = Math.max(currentGuests.length, 1);
+        const featured = composedGuests[0];
+        const featuredQuestion = featured?.seed_questions?.[0];
+        const ROMAN = ['i', 'ii', 'iii', 'iv', 'v', 'vi'];
+        return (
+          <section className="px-6 sm:px-10 max-w-5xl mx-auto mt-2 mb-20 grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-12 reveal">
+            {/* DATE POLL — as a ledger */}
+            <div className="relative">
+              <div className="flex items-baseline justify-between mb-3 gap-3">
+                <div className="text-[11px] uppercase tracking-[0.18em] text-wine/75">Date poll</div>
+                <div className="flex items-center gap-3 text-[11px] uppercase tracking-[0.16em]">
+                  <a
+                    href={waShareToGroup({ event: currentEvent, kind: 'poll' })}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-forest hover:text-wine-soft font-medium transition-colors flex items-center gap-1.5"
+                    aria-label="Share poll to WhatsApp group"
+                  >
+                    <WaIcon /> Share
+                  </a>
+                  <Link
+                    href={`/edition/${currentEvent.id}/poll`}
+                    className="text-wine/75 hover:text-wine transition-colors"
+                  >
+                    Open ledger →
+                  </Link>
+                </div>
+              </div>
+              <div
+                className="font-display italic font-light text-wine tracking-tight"
+                style={{ fontSize: 'clamp(26px, 3.4vw, 34px)', lineHeight: 1.1 }}
+              >
+                {dateLocked ? 'Date is locked.' : 'When shall we meet?'}
+              </div>
+
+              <ol className="mt-5 border-t border-wine/30">
+                {eventOptions.length === 0 ? (
+                  <li className="py-4 text-[14px] text-wine/75 italic">
+                    No dates proposed yet. Open the ledger to auto-propose Sundays.
+                  </li>
+                ) : (
+                  eventOptions.slice(0, 4).map((opt, idx) => {
+                    const dt = new Date(opt.proposed_date + 'T12:00:00');
+                    const label = dt.toLocaleDateString('en-CA', { weekday: 'short', month: 'short', day: 'numeric' });
+                    const isLocked = dateLocked && eventPoll.decided_option_id === opt.id;
+                    return (
+                      <li
+                        key={opt.id}
+                        className={`flex items-baseline gap-4 py-2.5 border-b border-wine/15 ${isLocked ? 'border-l-2 border-l-forest pl-3' : ''}`}
+                      >
+                        <span className="font-display italic font-light text-pinky-bright text-[14px] w-6 tracking-tight">
+                          {ROMAN[idx]}.
+                        </span>
+                        <span className="font-display text-[15px] text-wine flex-1">
+                          {label}
+                          {opt.proposed_time && <span className="text-wine/70 italic ml-1.5">· {opt.proposed_time}</span>}
+                        </span>
+                        <span className="text-[11px] uppercase tracking-[0.16em] text-wine/75">
+                          {opt.votes === 0 && opt.maybes === 0
+                            ? '—'
+                            : `${opt.votes} sworn${opt.maybes ? ` · ${opt.maybes} maybe` : ''}`}
+                        </span>
+                      </li>
+                    );
+                  })
+                )}
+              </ol>
+              {eventOptions.length > 0 && !dateLocked && (
+                <div className="mt-3 text-[11px] uppercase tracking-[0.16em] text-wine/75">
+                  {eventOptions[0].votes === 0 ? 'Awaiting first vote.' : `${eventOptions[0].votes} sworn so far.`}
+                </div>
+              )}
+            </div>
+
+            {/* SEED CARDS — actual stacked cards */}
+            <div className="relative">
+              <div className="flex items-baseline justify-between mb-3 gap-3">
+                <div className="text-[11px] uppercase tracking-[0.18em] text-wine/75">Seed cards</div>
+                <div className="flex items-center gap-3 text-[11px] uppercase tracking-[0.16em]">
+                  <a
+                    href={waShareToGroup({ event: currentEvent, kind: 'cards' })}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-forest hover:text-wine-soft font-medium transition-colors flex items-center gap-1.5"
+                    aria-label="Share cards to WhatsApp group"
+                  >
+                    <WaIcon /> Share
+                  </a>
+                  <Link
+                    href={`/edition/${currentEvent.id}`}
+                    className="text-wine/75 hover:text-wine transition-colors"
+                  >
+                    Compose →
+                  </Link>
+                </div>
+              </div>
+              <div
+                className="font-display italic font-light text-wine tracking-tight"
+                style={{ fontSize: 'clamp(26px, 3.4vw, 34px)', lineHeight: 1.1 }}
+              >
+                Three sharp openers
+              </div>
+
+              {/* the card stack */}
+              <div className="mt-6 relative" style={{ height: 220 }}>
+                {/* card 3 — back, butter */}
+                <div
+                  className="absolute inset-0 border border-wine/25 bg-butter/40 rounded-sm"
+                  style={{ transform: 'translate(14px, 14px) rotate(2.4deg)' }}
+                  aria-hidden="true"
+                />
+                {/* card 2 — middle, sage */}
+                <div
+                  className="absolute inset-0 border border-wine/30 bg-forest-soft/55 rounded-sm"
+                  style={{ transform: 'translate(7px, 7px) rotate(-1.4deg)' }}
+                  aria-hidden="true"
+                />
+                {/* card 1 — front */}
+                <div className="absolute inset-0 border border-wine bg-cream rounded-sm p-5 flex flex-col justify-between">
+                  <div className="flex items-baseline justify-between">
+                    <div className="text-[11px] uppercase tracking-[0.18em] text-wine/75">
+                      Card i
+                    </div>
+                    {featured && (
+                      <div className="text-[11px] uppercase tracking-[0.16em] text-wine/75 italic font-display">
+                        for {featured.name.split(' ')[0]}
+                      </div>
+                    )}
+                  </div>
+                  <div
+                    className={`font-display italic font-light leading-snug ${featuredQuestion ? 'text-wine/90' : 'text-wine/60'}`}
+                    style={{ fontSize: 'clamp(15px, 1.6vw, 18px)', lineHeight: 1.45 }}
+                  >
+                    {featuredQuestion || 'Awaiting your first opener.'}
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.16em] text-wine/75">
+                    <span>{composedCount} of {seedTarget} composed</span>
+                    <span className="font-display italic normal-case tracking-normal text-[13px] text-wine/65">
+                      Pinky's quill
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        );
+      })()}
 
       {/* CHAPTER MARK II */}
       <ChapterMark roman="II" label="The Roster" className="px-6 sm:px-10 max-w-5xl mx-auto" />
@@ -395,15 +546,18 @@ export default function ClubBoard() {
       </section>
 
       {/* FOOTER */}
-      <footer className="px-6 sm:px-10 max-w-5xl mx-auto mt-24 pt-7 border-t border-wine">
-        <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.16em] text-wine/75">
-          <div className="flex items-center gap-2.5">
-            <PinkyMark size={22} className="text-wine/70" />
-            <span>Est. 2026 · Vol. I</span>
-          </div>
-          <span className="font-display italic normal-case tracking-normal text-[13px] text-wine/50">
+      <footer className="max-w-5xl mx-auto mt-24 pt-10 border-t border-wine">
+        <div className="px-6 sm:px-10 flex flex-col items-center text-center gap-5">
+          <PinkyMark size={28} className="text-wine/75" />
+          <p
+            className="font-display italic font-light text-wine/85"
+            style={{ fontSize: 'clamp(20px, 2.6vw, 28px)', lineHeight: 1.25, maxWidth: '32ch' }}
+          >
             First rule. Don&apos;t bring eggs to an idea fight.
-          </span>
+          </p>
+          <div className="text-[11px] uppercase tracking-[0.16em] text-wine/70">
+            Est. 2026 · Vol. I · A.B.C.
+          </div>
         </div>
       </footer>
 
