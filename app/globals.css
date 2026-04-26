@@ -13,29 +13,80 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* paper texture, very subtle */
+/* ============================================================
+   PAPER TEXTURE OVERLAY
+   Two layers, both pointer-events: none, both multiply.
+   ::before  fractal-noise speckle (letterpress bite)
+   ::after   stretched turbulence (paper grain direction)
+   ============================================================ */
 body::before {
-  content: '';
+  content: "";
   position: fixed;
   inset: 0;
   pointer-events: none;
-  background-image:
-    radial-gradient(circle at 20% 30%, rgba(58, 22, 34, 0.025) 1px, transparent 1px),
-    radial-gradient(circle at 75% 80%, rgba(58, 22, 34, 0.02) 1px, transparent 1px);
-  background-size: 24px 24px, 32px 32px;
-  z-index: 0;
+  z-index: 9998;
+  mix-blend-mode: multiply;
+  opacity: 0.55;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='320'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='7' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.227  0 0 0 0 0.086  0 0 0 0 0.133  0 0 0 0.08 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-size: 320px 320px;
+}
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  mix-blend-mode: multiply;
+  opacity: 0.42;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600'><filter id='f'><feTurbulence type='turbulence' baseFrequency='0.012 0.85' numOctaves='2' seed='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.227  0 0 0 0 0.086  0 0 0 0 0.133  0 0 0 0.05 0'/></filter><rect width='100%25' height='100%25' filter='url(%23f)'/></svg>");
+  background-size: 600px 600px;
 }
 
 main, header, footer { position: relative; z-index: 1; }
 
-/* selection */
 ::selection {
   background: #F47A86;
   color: #3A1622;
 }
 
-/* tiny rule */
 .rule {
   height: 1px;
   background: linear-gradient(to right, transparent, rgba(58, 22, 34, 0.2), transparent);
+}
+
+/* ============================================================
+   ON-SCROLL REVEAL
+   Add class .reveal on any element, IntersectionObserver flips
+   .is-visible. Subtle translate + fade.
+   ============================================================ */
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 700ms ease, transform 700ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* hairline rules used in chapter marks */
+.hairline {
+  height: 1px;
+  background: rgba(58, 22, 34, 0.85);
+}
+
+/* status pill glyph alignment */
+.pill-glyph {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0;
+  opacity: 0.7;
+}
+
+/* respect reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+  * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
 }

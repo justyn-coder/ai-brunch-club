@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import PinkyMark from './PinkyMark';
 
@@ -11,11 +11,25 @@ const STATUS_LABELS = {
   declined: 'Regrets',
 };
 
+const STATUS_GLYPHS = {
+  invited: '·',
+  confirmed: '×',
+  maybe: '~',
+  declined: '∅',
+};
+
 const STATUS_STYLES = {
-  invited: 'bg-pinky-soft text-wine border-pinky/40',
-  confirmed: 'bg-forest-soft text-forest border-forest/30',
-  maybe: 'bg-butter/30 text-wine border-butter/40',
-  declined: 'bg-ash-soft text-ash border-ash/30',
+  invited:   'bg-pinky-soft/55 text-wine border-pinky/55',
+  confirmed: 'bg-forest-soft/55 text-forest border-forest/45',
+  maybe:     'bg-butter/30 text-wine border-butter/70',
+  declined:  'bg-ash-soft/60 text-ash border-ash/45',
+};
+
+const STATUS_DOT = {
+  invited:   'bg-wine/20',
+  confirmed: 'bg-pinky-bright',
+  maybe:     'bg-butter',
+  declined:  'bg-transparent border border-ash/50',
 };
 
 const STATUS_OPTIONS = ['invited', 'confirmed', 'maybe', 'declined'];
@@ -49,6 +63,27 @@ function formatLongDate(d) {
   });
 }
 
+/* On-scroll reveal hook. Adds .is-visible to .reveal nodes. */
+function useReveal() {
+  useEffect(() => {
+    const nodes = document.querySelectorAll('.reveal');
+    if (!('IntersectionObserver' in window)) {
+      nodes.forEach((n) => n.classList.add('is-visible'));
+      return;
+    }
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          e.target.classList.add('is-visible');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+    nodes.forEach((n) => io.observe(n));
+    return () => io.disconnect();
+  }, []);
+}
+
 export default function ClubBoard() {
   const [events, setEvents] = useState([]);
   const [guests, setGuests] = useState([]);
@@ -57,9 +92,8 @@ export default function ClubBoard() {
   const [editingId, setEditingId] = useState(null);
   const [showEventEditor, setShowEventEditor] = useState(false);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
+  useReveal();
 
   async function fetchData() {
     setLoading(true);
@@ -79,116 +113,184 @@ export default function ClubBoard() {
 
   const confirmedCount = currentGuests.filter((g) => g.status === 'confirmed').length;
   const pendingCount = currentGuests.filter((g) => g.status === 'invited' || g.status === 'maybe').length;
+  const totalSeats = Math.max(currentGuests.length, 6);
 
   return (
     <main className="min-h-screen pb-32">
-      {/* top bar */}
-      <header className="px-6 pt-6 pb-12 max-w-3xl mx-auto flex items-center justify-between text-wine">
-        <div className="flex items-center gap-3">
-          <PinkyMark size={36} className="text-wine" />
-          <span className="font-display italic text-sm tracking-tight">A.B.C.</span>
-        </div>
-        <div className="text-[10px] uppercase tracking-[0.18em] text-wine/60 text-right">
-          Members
-          <span className="block text-wine/45 mt-0.5 normal-case tracking-normal text-[11px] font-display italic">
-            Justyn · Brad · John
-          </span>
+      {/* MASTHEAD BAR */}
+      <header className="px-6 sm:px-10 pt-6 pb-4 max-w-5xl mx-auto">
+        <div className="flex items-start justify-between border-b border-wine pb-3.5">
+          <div className="flex items-center gap-3">
+            <PinkyMark size={42} className="text-wine" />
+            <div>
+              <div className="font-display italic font-light text-[18px] leading-none tracking-tight">A.B.C.</div>
+              <div className="text-[9px] uppercase tracking-[0.22em] text-wine/55 mt-1">Vol. I · Etobicoke</div>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-[9px] uppercase tracking-[0.22em] text-wine/55">Members</div>
+            <div className="font-display italic font-light text-[14px] mt-1 tracking-tight">
+              Justyn · Brad · John
+            </div>
+          </div>
         </div>
       </header>
 
-      {/* hero */}
-      <section className="px-6 max-w-3xl mx-auto pt-2 pb-16">
-        <h1 className="font-display text-[16vw] sm:text-[112px] leading-[0.92] tracking-[-0.04em] text-wine">
-          <span className="italic font-light">AI</span>
-          <br />
-          <span className="font-medium">Brunch</span>
-          <br />
-          <span className="font-medium">Club</span>
-          <span className="text-pinky-bright">.</span>
-        </h1>
-        <div className="mt-10 flex items-center gap-3 text-wine/70">
-          <div className="h-px w-10 bg-wine/30" />
-          <p className="font-display italic text-base sm:text-lg">
-            Founded at Pinky Swear, Etobicoke.
-          </p>
+      {/* HERO — asymmetric two-column wordmark */}
+      <section className="px-6 sm:px-10 max-w-5xl mx-auto pt-10 sm:pt-16 pb-16 sm:pb-24">
+        <div className="grid grid-cols-1 sm:grid-cols-[0.9fr_1.1fr] gap-x-0 gap-y-2 items-start">
+          <div className="reveal relative">
+            <div
+              className="font-display italic font-extralight text-wine"
+              style={{ fontSize: 'clamp(140px, 26vw, 280px)', lineHeight: 0.78, letterSpacing: '-0.04em', marginTop: '-0.06em' }}
+            >
+              AI
+            </div>
+            <div
+              className="hidden sm:block absolute"
+              style={{ top: 28, left: -10, transform: 'rotate(-90deg)', transformOrigin: 'left top' }}
+            >
+              <span className="text-[9px] uppercase tracking-[0.4em] text-wine/55">An editorial gathering</span>
+            </div>
+          </div>
+
+          <div className="reveal pt-0 sm:pt-3" style={{ '--reveal-delay': '120ms' }}>
+            <div
+              className="font-display font-medium text-wine"
+              style={{ fontSize: 'clamp(64px, 13vw, 132px)', lineHeight: 0.88, letterSpacing: '-0.03em' }}
+            >
+              Brunch<br />Club<span className="text-pinky-bright">.</span>
+            </div>
+            <div className="mt-7 flex items-center gap-3">
+              <div className="h-px w-9 bg-wine/70" />
+              <p className="font-display italic font-light text-base sm:text-lg text-wine">
+                Founded at Pinky Swear, Etobicoke.
+              </p>
+            </div>
+            <p className="mt-7 max-w-md text-[15px] leading-[1.65] text-wine/85">
+              A standing date with two guests of honour. Conversation is the menu. Eggs go cold. Ideas don&apos;t.
+            </p>
+          </div>
         </div>
-        <p className="mt-8 max-w-md text-[15px] leading-[1.65] text-wine/85">
-          A standing date with two guests of honour. Conversation is the menu.
-          Eggs go cold. Ideas don&apos;t.
-        </p>
       </section>
 
-      {/* current edition card */}
-      <section className="px-6 max-w-3xl mx-auto mb-10">
-        <div className="border border-wine/15 bg-cream-deep/50 rounded-sm p-7 sm:p-9">
-          <div className="flex items-start justify-between gap-6">
-            <div>
-              <div className="text-[10px] uppercase tracking-[0.22em] text-wine/55 mb-3">
-                The next gathering
-              </div>
-              <div className="font-display text-3xl sm:text-4xl text-wine tracking-tight">
-                Brunch No. {currentEvent ? String(currentEvent.edition_number).padStart(2, '0') : '01'}
-              </div>
-              <div className="font-display italic text-wine/70 text-base sm:text-lg mt-2">
-                {currentEvent?.event_date
-                  ? formatLongDate(currentEvent.event_date)
-                  : 'Date to be sworn'}
-              </div>
-              <div className="text-[12px] uppercase tracking-[0.18em] text-wine/55 mt-4">
+      {/* CHAPTER MARK I */}
+      <ChapterMark roman="I" label="The next gathering" className="px-6 sm:px-10 max-w-5xl mx-auto" />
+
+      {/* FRONTISPIECE — current edition */}
+      <section className="px-6 sm:px-10 max-w-5xl mx-auto mt-8 mb-24 sm:mb-28">
+        <div className="grid grid-cols-1 sm:grid-cols-[280px_1fr_auto] gap-x-0 sm:gap-x-0 gap-y-8 items-start reveal">
+          {/* oversized 01 numeral */}
+          <div className="relative">
+            <div
+              className="font-display font-light text-wine"
+              style={{ fontSize: 'clamp(180px, 24vw, 280px)', lineHeight: 0.85, letterSpacing: '-0.06em', marginLeft: '-0.04em', marginTop: '-0.08em' }}
+            >
+              <span className="font-extralight italic">
+                {currentEvent ? String(currentEvent.edition_number).padStart(2, '0').charAt(0) : '0'}
+              </span>
+              {currentEvent ? String(currentEvent.edition_number).padStart(2, '0').charAt(1) : '1'}
+            </div>
+            <div className="absolute bottom-1 left-1 text-[9px] uppercase tracking-[0.22em] text-wine/55">
+              Brunch №
+            </div>
+          </div>
+
+          {/* hairline rule + hung copy */}
+          <div className="sm:border-l sm:border-wine sm:pl-8 sm:self-stretch sm:pt-2">
+            <div className="text-[10px] uppercase tracking-[0.22em] text-wine/55 mb-2.5">
+              The next gathering
+            </div>
+            <div className="font-display italic font-light text-2xl sm:text-[28px] leading-[1.15] tracking-tight max-w-md">
+              {currentEvent?.event_date ? formatLongDate(currentEvent.event_date) : 'Date to be sworn'}
+            </div>
+            <div className="mt-4 flex items-center gap-2.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-pinky-bright" />
+              <span className="text-[10px] uppercase tracking-[0.18em] text-wine/65">
                 Pinky Swear · Etobicoke
-              </div>
+              </span>
             </div>
-            <div className="text-right shrink-0">
-              <div className="font-display text-5xl sm:text-6xl text-pinky-bright leading-none">
-                {String(confirmedCount).padStart(2, '0')}
-              </div>
-              <div className="text-[10px] uppercase tracking-[0.18em] text-wine/55 mt-2">
-                Pinky sworn
-              </div>
-              {pendingCount > 0 && (
-                <div className="text-[11px] text-wine/50 mt-3 font-display italic">
-                  {pendingCount} awaiting
-                </div>
-              )}
+            {currentEvent?.notes && (
+              <p className="mt-5 max-w-sm font-display italic font-light text-[14px] leading-[1.65] text-wine/70">
+                &ldquo;{currentEvent.notes}&rdquo;
+              </p>
+            )}
+            <div className="mt-6 flex items-center gap-4 text-[11px]">
+              <button
+                onClick={() => setShowEventEditor(true)}
+                className="uppercase tracking-[0.16em] text-wine/55 hover:text-wine transition-colors"
+              >
+                Edit edition
+              </button>
+              <button
+                onClick={async () => {
+                  const next = (events.reduce((m, e) => Math.max(m, e.edition_number), 0) || 0) + 1;
+                  await supabase.from('abc_events').insert({ edition_number: next, status: 'planning' });
+                  await fetchData();
+                }}
+                className="uppercase tracking-[0.16em] text-wine/55 hover:text-wine transition-colors"
+              >
+                + New edition
+              </button>
             </div>
           </div>
-          <div className="mt-6 pt-5 border-t border-wine/10 flex items-center gap-4 text-[11px]">
-            <button
-              onClick={() => setShowEventEditor(true)}
-              className="uppercase tracking-[0.16em] text-wine/55 hover:text-wine"
-            >
-              Edit edition
-            </button>
-            <button
-              onClick={async () => {
-                const next = (events.reduce((m, e) => Math.max(m, e.edition_number), 0) || 0) + 1;
-                await supabase.from('abc_events').insert({ edition_number: next, status: 'planning' });
-                await fetchData();
-              }}
-              className="uppercase tracking-[0.16em] text-wine/55 hover:text-wine"
-            >
-              + New edition
-            </button>
+
+          {/* tally */}
+          <div className="text-right min-w-[140px] sm:pl-8 sm:pt-2">
+            <div className="text-[10px] uppercase tracking-[0.22em] text-wine/55 mb-2.5">
+              Pinky sworn
+            </div>
+            <div className="flex items-baseline justify-end gap-1.5">
+              <span
+                className="font-display font-light text-pinky-bright"
+                style={{ fontSize: 'clamp(64px, 9vw, 84px)', lineHeight: 0.9, letterSpacing: '-0.04em' }}
+              >
+                {String(confirmedCount).padStart(2, '0')}
+              </span>
+              <span className="font-display italic font-light text-[28px] text-wine/40 tracking-tight">
+                /{String(totalSeats).padStart(2, '0')}
+              </span>
+            </div>
+            {pendingCount > 0 && (
+              <div className="text-[9px] uppercase tracking-[0.22em] text-wine/45 mt-3">
+                {pendingCount} awaiting reply
+              </div>
+            )}
+            {/* dot tally — one per guest, color by status */}
+            <div className="mt-4 flex justify-end gap-1.5">
+              {currentGuests.map((g) => (
+                <span
+                  key={g.id}
+                  title={`${g.name} · ${STATUS_LABELS[g.status]}`}
+                  className={`w-1.5 h-1.5 rounded-full ${STATUS_DOT[g.status]}`}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* the roster */}
-      <section className="px-6 max-w-3xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="font-display text-2xl text-wine tracking-tight">The Roster</h2>
+      {/* CHAPTER MARK II */}
+      <ChapterMark roman="II" label="The Roster" className="px-6 sm:px-10 max-w-5xl mx-auto" />
+
+      {/* THE ROSTER */}
+      <section className="px-6 sm:px-10 max-w-5xl mx-auto mt-6">
+        <div className="flex items-baseline justify-between mb-4">
+          <h2 className="font-display text-3xl sm:text-[44px] font-medium tracking-tight text-wine">
+            The Roster<span className="text-pinky-bright">.</span>
+          </h2>
           <button
             onClick={() => setShowAddForm(true)}
-            className="text-[11px] uppercase tracking-[0.18em] text-pinky-bright hover:text-wine transition-colors flex items-center gap-2"
+            className="text-[10px] uppercase tracking-[0.18em] text-pinky-bright hover:text-wine transition-colors"
           >
-            <span className="text-base leading-none">+</span> Add a guest
+            + Add a guest
           </button>
         </div>
 
         {loading ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-20 bg-wine/5 rounded-sm animate-pulse" />
+              <div key={i} className="h-16 bg-wine/5 rounded-sm animate-pulse" />
             ))}
           </div>
         ) : currentGuests.length === 0 ? (
@@ -201,11 +303,12 @@ export default function ClubBoard() {
             </p>
           </div>
         ) : (
-          <ul className="divide-y divide-wine/10 border-y border-wine/10">
-            {currentGuests.map((guest) => (
+          <ul className="border-t border-wine">
+            {currentGuests.map((guest, i) => (
               <GuestRow
                 key={guest.id}
                 guest={guest}
+                idx={i}
                 onEdit={() => setEditingId(guest.id)}
                 onUpdate={fetchData}
               />
@@ -214,15 +317,15 @@ export default function ClubBoard() {
         )}
       </section>
 
-      {/* footer */}
-      <footer className="px-6 max-w-3xl mx-auto mt-24 pt-10 border-t border-wine/10">
-        <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.18em] text-wine/45">
-          <div className="flex items-center gap-2">
-            <PinkyMark size={20} className="text-wine/40" />
-            <span>Est. 2026</span>
+      {/* FOOTER */}
+      <footer className="px-6 sm:px-10 max-w-5xl mx-auto mt-24 pt-7 border-t border-wine">
+        <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.22em] text-wine/55">
+          <div className="flex items-center gap-2.5">
+            <PinkyMark size={22} className="text-wine/70" />
+            <span>Est. 2026 · Vol. I</span>
           </div>
-          <span className="font-display italic normal-case tracking-normal text-wine/40">
-            First rule: don&apos;t bring eggs to an idea fight.
+          <span className="font-display italic normal-case tracking-normal text-[13px] text-wine/50">
+            First rule. Don&apos;t bring eggs to an idea fight.
           </span>
         </div>
       </footer>
@@ -231,10 +334,7 @@ export default function ClubBoard() {
         <GuestForm
           eventId={currentEvent.id}
           onClose={() => setShowAddForm(false)}
-          onSaved={() => {
-            setShowAddForm(false);
-            fetchData();
-          }}
+          onSaved={() => { setShowAddForm(false); fetchData(); }}
         />
       )}
 
@@ -243,10 +343,7 @@ export default function ClubBoard() {
           eventId={currentEvent?.id}
           guest={guests.find((g) => g.id === editingId)}
           onClose={() => setEditingId(null)}
-          onSaved={() => {
-            setEditingId(null);
-            fetchData();
-          }}
+          onSaved={() => { setEditingId(null); fetchData(); }}
         />
       )}
 
@@ -254,24 +351,30 @@ export default function ClubBoard() {
         <EventEditor
           event={currentEvent}
           onClose={() => setShowEventEditor(false)}
-          onSaved={() => {
-            setShowEventEditor(false);
-            fetchData();
-          }}
+          onSaved={() => { setShowEventEditor(false); fetchData(); }}
         />
       )}
     </main>
   );
 }
 
-function GuestRow({ guest, onEdit, onUpdate }) {
+/* ---------- Chapter mark ---------- */
+function ChapterMark({ roman, label, className = '' }) {
+  return (
+    <div className={`flex items-center gap-3.5 reveal ${className}`}>
+      <span className="font-display italic font-light text-[22px] tracking-tight text-pinky-bright">
+        {roman}.
+      </span>
+      <span className="hairline flex-1" />
+      <span className="text-[9px] uppercase tracking-[0.22em] text-wine/55">{label}</span>
+    </div>
+  );
+}
+
+/* ---------- Roster row ---------- */
+function GuestRow({ guest, idx, onEdit, onUpdate }) {
   const [updating, setUpdating] = useState(false);
-  const initials = guest.name
-    .split(' ')
-    .map((s) => s[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
+  const [hover, setHover] = useState(false);
 
   async function quickSetStatus(newStatus) {
     if (updating) return;
@@ -289,23 +392,38 @@ function GuestRow({ guest, onEdit, onUpdate }) {
   }
 
   return (
-    <li className="py-5 flex items-center gap-4">
-      <div className="w-10 h-10 rounded-full bg-pinky-soft border border-pinky/30 flex items-center justify-center font-display italic text-wine text-sm shrink-0">
-        {initials}
+    <li
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      className="grid items-center gap-x-4 py-4 sm:py-5 border-b border-wine/15 transition-all duration-300"
+      style={{
+        gridTemplateColumns: '36px 1fr auto',
+        background: hover ? 'rgba(248,220,223,0.16)' : 'transparent',
+        marginInline: hover ? '-12px' : 0,
+        paddingInline: hover ? '12px' : 0,
+      }}
+    >
+      {/* drop-cap numeral */}
+      <div className="font-display italic font-light text-2xl sm:text-[28px] text-wine/35 leading-none tracking-tight">
+        {String(idx + 1).padStart(2, '0')}
       </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
+
+      {/* name + meta + bloom note */}
+      <div className="min-w-0">
+        <div className="flex items-baseline gap-2 flex-wrap">
           {guest.linkedin_url ? (
             <a
               href={guest.linkedin_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-display text-lg text-wine hover:text-pinky-bright transition-colors tracking-tight"
+              className="font-display text-lg sm:text-[22px] font-medium text-wine hover:text-pinky-bright transition-colors tracking-tight"
             >
               {guest.name}
             </a>
           ) : (
-            <span className="font-display text-lg text-wine tracking-tight">{guest.name}</span>
+            <span className="font-display text-lg sm:text-[22px] font-medium text-wine tracking-tight">
+              {guest.name}
+            </span>
           )}
           {guest.linkedin_url && (
             <a
@@ -313,28 +431,42 @@ function GuestRow({ guest, onEdit, onUpdate }) {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="LinkedIn profile"
-              className="text-wine/40 hover:text-wine"
+              className="text-wine/35 hover:text-wine transition-colors"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
               </svg>
             </a>
           )}
         </div>
-        <div className="text-[11px] uppercase tracking-[0.16em] text-wine/50 mt-1">
-          Invited by {INVITED_BY_LABEL[guest.invited_by] || guest.invited_by} · {formatDate(guest.invited_at)}
+        <div className="text-[10px] uppercase tracking-[0.18em] text-wine/55 mt-1">
+          Inv. {INVITED_BY_LABEL[guest.invited_by] || guest.invited_by}
+          <span className="text-wine/30 mx-1.5">·</span>
+          <span className="font-display italic text-[12px] tracking-normal normal-case">
+            {formatDate(guest.invited_at)}
+          </span>
         </div>
         {guest.notes && (
-          <div className="font-display italic text-[13px] text-wine/60 mt-2">
+          <div
+            className="font-display italic font-light text-[13px] text-wine/60 leading-[1.5] overflow-hidden"
+            style={{
+              maxHeight: hover ? 80 : 0,
+              opacity: hover ? 1 : 0,
+              marginTop: hover ? 6 : 0,
+              transition: 'max-height 320ms ease, opacity 320ms ease, margin-top 320ms ease',
+            }}
+          >
             &ldquo;{guest.notes}&rdquo;
           </div>
         )}
       </div>
+
+      {/* pill + edit */}
       <div className="flex items-center gap-2 shrink-0">
         <StatusPill status={guest.status} onChange={quickSetStatus} disabled={updating} />
         <button
           onClick={onEdit}
-          className="text-wine/35 hover:text-wine"
+          className="text-wine/30 hover:text-wine transition-colors"
           aria-label="Edit guest"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -346,31 +478,30 @@ function GuestRow({ guest, onEdit, onUpdate }) {
   );
 }
 
+/* ---------- Status pill ---------- */
 function StatusPill({ status, onChange, disabled }) {
   const [open, setOpen] = useState(false);
-
   return (
     <div className="relative">
       <button onClick={() => setOpen(!open)} disabled={disabled}>
         <span
-          className={`inline-block text-[10px] uppercase tracking-[0.18em] px-3 py-1.5 border rounded-full font-medium ${STATUS_STYLES[status]} cursor-pointer hover:opacity-80 ${disabled ? 'opacity-50' : ''}`}
+          className={`inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] px-2.5 py-1.5 border rounded-full font-medium ${STATUS_STYLES[status]} cursor-pointer hover:opacity-85 transition-opacity ${disabled ? 'opacity-50' : ''}`}
         >
+          <span className="pill-glyph">{STATUS_GLYPHS[status]}</span>
           {STATUS_LABELS[status]}
         </span>
       </button>
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full mt-2 z-20 bg-cream border border-wine/15 rounded-sm shadow-md py-1 min-w-[140px]">
+          <div className="absolute right-0 top-full mt-2 z-20 bg-cream border border-wine/15 rounded-sm shadow-md py-1 min-w-[150px]">
             {STATUS_OPTIONS.map((s) => (
               <button
                 key={s}
-                onClick={() => {
-                  onChange(s);
-                  setOpen(false);
-                }}
-                className={`w-full text-left px-3 py-2 text-[11px] uppercase tracking-[0.16em] hover:bg-pinky-soft/50 ${s === status ? 'text-wine font-semibold' : 'text-wine/70'}`}
+                onClick={() => { onChange(s); setOpen(false); }}
+                className={`w-full text-left px-3 py-2 text-[11px] uppercase tracking-[0.16em] hover:bg-pinky-soft/50 flex items-center gap-2 ${s === status ? 'text-wine font-semibold' : 'text-wine/70'}`}
               >
+                <span className="pill-glyph">{STATUS_GLYPHS[s]}</span>
                 {STATUS_LABELS[s]}
               </button>
             ))}
@@ -381,6 +512,7 @@ function StatusPill({ status, onChange, disabled }) {
   );
 }
 
+/* ---------- Guest form (logic unchanged) ---------- */
 function GuestForm({ eventId, guest, onClose, onSaved }) {
   const isEdit = !!guest;
   const [name, setName] = useState(guest?.name || '');
@@ -412,10 +544,7 @@ function GuestForm({ eventId, guest, onClose, onSaved }) {
       : supabase.from('abc_guests').insert(payload);
     const { error: err } = await op;
     setSaving(false);
-    if (err) {
-      setError(err.message);
-      return;
-    }
+    if (err) { setError(err.message); return; }
     onSaved();
   }
 
@@ -425,10 +554,7 @@ function GuestForm({ eventId, guest, onClose, onSaved }) {
     setDeleting(true);
     const { error: err } = await supabase.from('abc_guests').delete().eq('id', guest.id);
     setDeleting(false);
-    if (err) {
-      setError(err.message);
-      return;
-    }
+    if (err) { setError(err.message); return; }
     onSaved();
   }
 
@@ -448,23 +574,11 @@ function GuestForm({ eventId, guest, onClose, onSaved }) {
 
         <div className="space-y-5">
           <Field label="Name">
-            <input
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Eg. Geoffrey Hinton"
-              className="form-input"
-            />
+            <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Eg. Geoffrey Hinton" className="form-input" />
           </Field>
 
           <Field label="LinkedIn URL">
-            <input
-              type="url"
-              value={linkedinUrl}
-              onChange={(e) => setLinkedinUrl(e.target.value)}
-              placeholder="https://linkedin.com/in/…"
-              className="form-input"
-            />
+            <input type="url" value={linkedinUrl} onChange={(e) => setLinkedinUrl(e.target.value)} placeholder="https://linkedin.com/in/…" className="form-input" />
           </Field>
 
           <Field label="Invited by">
@@ -493,12 +607,13 @@ function GuestForm({ eventId, guest, onClose, onSaved }) {
                   key={s}
                   type="button"
                   onClick={() => setStatus(s)}
-                  className={`px-4 py-2.5 text-[12px] uppercase tracking-[0.16em] border rounded-sm transition-colors ${
+                  className={`px-4 py-2.5 text-[12px] uppercase tracking-[0.16em] border rounded-sm transition-colors flex items-center justify-center gap-2 ${
                     status === s
                       ? 'bg-wine text-cream border-wine'
                       : 'bg-transparent text-wine/65 border-wine/15 hover:border-wine/35'
                   }`}
                 >
+                  <span className="pill-glyph" style={{ color: status === s ? '#F4EDE0' : undefined }}>{STATUS_GLYPHS[s]}</span>
                   {STATUS_LABELS[s]}
                 </button>
               ))}
@@ -506,13 +621,7 @@ function GuestForm({ eventId, guest, onClose, onSaved }) {
           </Field>
 
           <Field label="Notes">
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows="3"
-              placeholder="Why we want them at the table"
-              className="form-input resize-none"
-            />
+            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows="3" placeholder="Why we want them at the table" className="form-input resize-none" />
           </Field>
 
           {error && <p className="text-[12px] text-pinky-bright italic">{error}</p>}
@@ -532,18 +641,10 @@ function GuestForm({ eventId, guest, onClose, onSaved }) {
             )}
           </div>
           <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="text-[11px] uppercase tracking-[0.18em] text-wine/50 hover:text-wine"
-            >
+            <button type="button" onClick={onClose} className="text-[11px] uppercase tracking-[0.18em] text-wine/50 hover:text-wine">
               Cancel
             </button>
-            <button
-              type="submit"
-              disabled={!name || saving}
-              className="bg-wine text-cream px-6 py-2.5 text-[11px] uppercase tracking-[0.18em] rounded-sm hover:bg-wine-soft disabled:opacity-40"
-            >
+            <button type="submit" disabled={!name || saving} className="bg-wine text-cream px-6 py-2.5 text-[11px] uppercase tracking-[0.18em] rounded-sm hover:bg-wine-soft disabled:opacity-40">
               {saving ? 'Saving…' : isEdit ? 'Save changes' : 'Add to roster'}
             </button>
           </div>
@@ -576,6 +677,7 @@ function Field({ label, children }) {
   );
 }
 
+/* ---------- Event editor (logic unchanged) ---------- */
 function EventEditor({ event, onClose, onSaved }) {
   const [eventDate, setEventDate] = useState(event?.event_date || '');
   const [editionNumber, setEditionNumber] = useState(event?.edition_number || 1);
@@ -596,10 +698,7 @@ function EventEditor({ event, onClose, onSaved }) {
     };
     const { error: err } = await supabase.from('abc_events').update(payload).eq('id', event.id);
     setSaving(false);
-    if (err) {
-      setError(err.message);
-      return;
-    }
+    if (err) { setError(err.message); return; }
     onSaved();
   }
 
