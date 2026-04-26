@@ -47,7 +47,7 @@ export default async function Og({ params }) {
     );
   }
   const { guest, event } = data;
-  const editionLabel = `№ ${String(event?.edition_number || 1).padStart(2, '0')}`;
+  const editionLabel = `No. ${String(event?.edition_number || 1).padStart(2, '0')}`;
   const dateLine = event?.event_date ? formatLong(event.event_date) : 'Date being sworn';
   const dossierTeaser = guest.dossier
     ? guest.dossier.split(/[.!?]\s/).slice(0, 2).join('. ').trim() + (guest.dossier.length > 200 ? '.' : '')
