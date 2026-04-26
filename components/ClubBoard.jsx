@@ -225,7 +225,7 @@ export default function ClubBoard() {
               {currentEvent && (
                 <Link
                   href={`/edition/${currentEvent.id}`}
-                  className="uppercase tracking-[0.16em] text-forest hover:text-wine transition-colors"
+                  className="uppercase tracking-[0.16em] text-wine-soft hover:text-wine transition-colors font-medium"
                 >
                   Seed cards →
                 </Link>
