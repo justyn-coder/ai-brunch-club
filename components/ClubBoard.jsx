@@ -88,6 +88,8 @@ function useReveal() {
 export default function ClubBoard() {
   const [events, setEvents] = useState([]);
   const [guests, setGuests] = useState([]);
+  const [polls, setPolls] = useState([]);
+  const [pollOptions, setPollOptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -98,12 +100,16 @@ export default function ClubBoard() {
 
   async function fetchData() {
     setLoading(true);
-    const [eventsRes, guestsRes] = await Promise.all([
+    const [eventsRes, guestsRes, pollsRes, optionsRes] = await Promise.all([
       supabase.from('abc_events').select('*').order('edition_number', { ascending: true }),
       supabase.from('abc_guests').select('*').order('invited_at', { ascending: false }),
+      supabase.from('abc_date_polls').select('*'),
+      supabase.from('abc_date_poll_options').select('id, poll_id, proposed_date'),
     ]);
     setEvents(eventsRes.data || []);
     setGuests(guestsRes.data || []);
+    setPolls(pollsRes.data || []);
+    setPollOptions(optionsRes.data || []);
     setLoading(false);
   }
 
@@ -173,107 +179,146 @@ export default function ClubBoard() {
       <ChapterMark roman="I" label="The next gathering" className="px-6 sm:px-10 max-w-5xl mx-auto" />
 
       {/* FRONTISPIECE — current edition */}
-      <section className="px-6 sm:px-10 max-w-5xl mx-auto mt-8 mb-24 sm:mb-28">
-        <div className="grid grid-cols-1 sm:grid-cols-[280px_1fr_auto] gap-x-0 sm:gap-x-0 gap-y-8 items-start reveal">
-          {/* oversized 01 numeral */}
-          <div className="relative">
-            <div
-              className="font-display font-light text-wine"
-              style={{ fontSize: 'clamp(180px, 24vw, 280px)', lineHeight: 0.85, letterSpacing: '-0.06em', marginLeft: '-0.04em', marginTop: '-0.08em' }}
-            >
-              <span className="font-extralight italic">
-                {currentEvent ? String(currentEvent.edition_number).padStart(2, '0').charAt(0) : '0'}
-              </span>
-              {currentEvent ? String(currentEvent.edition_number).padStart(2, '0').charAt(1) : '1'}
+      <section className="px-6 sm:px-10 max-w-5xl mx-auto mt-6 mb-20 sm:mb-24">
+        <div className="reveal">
+          {/* TOP ROW — numeral, date/venue, tally */}
+          <div className="grid grid-cols-1 sm:grid-cols-[auto_1fr_auto] gap-x-8 gap-y-6 items-start">
+            {/* numeral with eyebrow ABOVE so nothing collides */}
+            <div>
+              <div className="text-[11px] uppercase tracking-[0.18em] text-wine/75 mb-1">Brunch №</div>
+              <div
+                className="font-display font-light text-wine"
+                style={{ fontSize: 'clamp(96px, 16vw, 180px)', lineHeight: 0.95, letterSpacing: '-0.04em' }}
+              >
+                <span className="font-extralight italic">
+                  {currentEvent ? String(currentEvent.edition_number).padStart(2, '0').charAt(0) : '0'}
+                </span>
+                {currentEvent ? String(currentEvent.edition_number).padStart(2, '0').charAt(1) : '1'}
+              </div>
             </div>
-            <div className="absolute bottom-1 left-1 text-[11px] uppercase tracking-[0.16em] text-wine/75">
-              Brunch №
+
+            {/* date + venue */}
+            <div className="sm:border-l sm:border-wine/30 sm:pl-8 sm:self-stretch sm:pt-7">
+              <div className="text-[11px] uppercase tracking-[0.18em] text-wine/75 mb-2">The next gathering</div>
+              <div className="font-display font-medium text-2xl sm:text-[32px] leading-[1.1] tracking-tight max-w-md text-wine">
+                {currentEvent?.event_date ? formatLongDate(currentEvent.event_date) : 'Date to be sworn'}
+              </div>
+              <div className="mt-3 flex items-center gap-2.5">
+                <span className="w-2 h-2 rounded-full bg-pinky-bright" />
+                <span className="text-[12px] uppercase tracking-[0.16em] text-wine/85 font-medium">
+                  Pinky Swear · New Toronto
+                </span>
+              </div>
+              {currentEvent?.notes && (
+                <p className="mt-4 max-w-sm font-display italic font-light text-[15px] leading-[1.6] text-wine/85">
+                  &ldquo;{currentEvent.notes}&rdquo;
+                </p>
+              )}
+            </div>
+
+            {/* tally */}
+            <div className="sm:text-right sm:pl-8 sm:pt-7 sm:min-w-[160px]">
+              <div className="text-[11px] uppercase tracking-[0.18em] text-wine/75 mb-2">Pinky sworn</div>
+              <div className="flex items-baseline sm:justify-end gap-1.5">
+                <span
+                  className="font-display font-light text-pinky-bright"
+                  style={{ fontSize: 'clamp(56px, 8vw, 80px)', lineHeight: 0.9, letterSpacing: '-0.04em' }}
+                >
+                  {String(confirmedCount).padStart(2, '0')}
+                </span>
+                <span className="font-display italic font-light text-[28px] text-wine/65 tracking-tight">
+                  /{String(totalSeats).padStart(2, '0')}
+                </span>
+              </div>
+              {pendingCount > 0 && (
+                <div className="text-[11px] uppercase tracking-[0.16em] text-wine/75 mt-2 font-medium">
+                  {pendingCount} awaiting reply
+                </div>
+              )}
+              <div className="mt-3 flex sm:justify-end gap-1.5">
+                {currentGuests.map((g) => (
+                  <span
+                    key={g.id}
+                    title={`${g.name} · ${STATUS_LABELS[g.status]}`}
+                    className={`w-1.5 h-1.5 rounded-full ${STATUS_DOT[g.status]}`}
+                  />
+                ))}
+              </div>
             </div>
           </div>
 
-          {/* hairline rule + hung copy */}
-          <div className="sm:border-l sm:border-wine sm:pl-8 sm:self-stretch sm:pt-2">
-            <div className="font-display italic font-light text-2xl sm:text-[28px] leading-[1.15] tracking-tight max-w-md">
-              {currentEvent?.event_date ? formatLongDate(currentEvent.event_date) : 'Date to be sworn'}
-            </div>
-            <div className="mt-4 flex items-center gap-2.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-pinky-bright" />
-              <span className="text-[10px] uppercase tracking-[0.18em] text-wine/65">
-                Pinky Swear · New Toronto
-              </span>
-            </div>
-            {currentEvent?.notes && (
-              <p className="mt-5 max-w-sm font-display italic font-light text-[14px] leading-[1.65] text-wine/70">
-                &ldquo;{currentEvent.notes}&rdquo;
-              </p>
-            )}
-            <div className="mt-6 flex items-center gap-4 text-[11px] flex-wrap">
-              <button
-                onClick={() => setShowEventEditor(true)}
-                className="uppercase tracking-[0.16em] text-wine/75 hover:text-wine transition-colors"
-              >
-                Edit edition
-              </button>
-              {currentEvent && (
+          {/* ACTION CARDS */}
+          {currentEvent && (() => {
+            const eventPoll = polls.find((p) => p.event_id === currentEvent.id);
+            const eventOptions = eventPoll ? pollOptions.filter((o) => o.poll_id === eventPoll.id) : [];
+            const dateLocked = !!currentEvent.event_date && eventPoll?.status === 'decided';
+            const guestsForEdition = currentGuests;
+            const composedCount = guestsForEdition.filter((g) => Array.isArray(g.seed_questions) && g.seed_questions.length === 3).length;
+            const seedTarget = guestsForEdition.length;
+            return (
+              <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Link
                   href={`/edition/${currentEvent.id}/poll`}
-                  className="uppercase tracking-[0.16em] text-forest hover:text-wine-soft transition-colors font-medium"
+                  className="group block border border-wine/20 hover:border-forest hover:bg-forest-soft/20 rounded-sm p-5 sm:p-6 transition-colors"
                 >
-                  Date poll →
+                  <div className="flex items-center justify-between">
+                    <div className="text-[11px] uppercase tracking-[0.18em] text-forest font-semibold">
+                      Date poll
+                    </div>
+                    <span className="font-display italic text-2xl text-wine/40 group-hover:text-forest transition-colors">→</span>
+                  </div>
+                  <div className="mt-2 font-display italic font-light text-2xl text-wine leading-tight tracking-tight">
+                    {dateLocked ? 'Date is locked' : 'When shall we meet?'}
+                  </div>
+                  <div className="mt-2 text-[14px] text-wine/85 leading-snug">
+                    {eventOptions.length === 0
+                      ? 'No dates proposed yet. Auto-propose Sundays.'
+                      : `${eventOptions.length} option${eventOptions.length === 1 ? '' : 's'} on the table${dateLocked ? ' · decided' : ''}.`}
+                  </div>
                 </Link>
-              )}
-              {currentEvent && (
+
                 <Link
                   href={`/edition/${currentEvent.id}`}
-                  className="uppercase tracking-[0.16em] text-wine-soft hover:text-wine transition-colors font-medium"
+                  className="group block border border-wine/20 hover:border-wine-soft hover:bg-wine/5 rounded-sm p-5 sm:p-6 transition-colors"
                 >
-                  Seed cards →
+                  <div className="flex items-center justify-between">
+                    <div className="text-[11px] uppercase tracking-[0.18em] text-wine-soft font-semibold">
+                      Seed cards
+                    </div>
+                    <span className="font-display italic text-2xl text-wine/40 group-hover:text-wine-soft transition-colors">→</span>
+                  </div>
+                  <div className="mt-2 font-display italic font-light text-2xl text-wine leading-tight tracking-tight">
+                    Three sharp openers
+                  </div>
+                  <div className="mt-2 text-[14px] text-wine/85 leading-snug">
+                    {seedTarget === 0
+                      ? 'Add guests first, then compose seed questions.'
+                      : `${composedCount} of ${seedTarget} composed${composedCount === seedTarget ? ' · ready to print' : ''}.`}
+                  </div>
                 </Link>
-              )}
-              <button
-                onClick={async () => {
-                  const next = (events.reduce((m, e) => Math.max(m, e.edition_number), 0) || 0) + 1;
-                  await supabase.from('abc_events').insert({ edition_number: next, status: 'planning' });
-                  await fetchData();
-                }}
-                className="uppercase tracking-[0.16em] text-wine/75 hover:text-wine transition-colors"
-              >
-                + New edition
-              </button>
-            </div>
-          </div>
-
-          {/* tally */}
-          <div className="text-right min-w-[140px] sm:pl-8 sm:pt-2">
-            <div className="text-[10px] uppercase tracking-[0.16em] text-wine/75 mb-2.5">
-              Pinky sworn
-            </div>
-            <div className="flex items-baseline justify-end gap-1.5">
-              <span
-                className="font-display font-light text-pinky-bright"
-                style={{ fontSize: 'clamp(64px, 9vw, 84px)', lineHeight: 0.9, letterSpacing: '-0.04em' }}
-              >
-                {String(confirmedCount).padStart(2, '0')}
-              </span>
-              <span className="font-display italic font-light text-[28px] text-wine/65 tracking-tight">
-                /{String(totalSeats).padStart(2, '0')}
-              </span>
-            </div>
-            {pendingCount > 0 && (
-              <div className="text-[11px] uppercase tracking-[0.16em] text-wine/70 mt-3">
-                {pendingCount} awaiting reply
               </div>
-            )}
-            {/* dot tally — one per guest, color by status */}
-            <div className="mt-4 flex justify-end gap-1.5">
-              {currentGuests.map((g) => (
-                <span
-                  key={g.id}
-                  title={`${g.name} · ${STATUS_LABELS[g.status]}`}
-                  className={`w-1.5 h-1.5 rounded-full ${STATUS_DOT[g.status]}`}
-                />
-              ))}
-            </div>
+            );
+          })()}
+
+          {/* SETTINGS ROW */}
+          <div className="mt-6 flex items-center gap-5 text-[11px] uppercase tracking-[0.16em] flex-wrap">
+            <button
+              onClick={() => setShowEventEditor(true)}
+              className="text-wine/70 hover:text-wine transition-colors"
+            >
+              Edit edition
+            </button>
+            <span className="text-wine/30">·</span>
+            <button
+              onClick={async () => {
+                const next = (events.reduce((m, e) => Math.max(m, e.edition_number), 0) || 0) + 1;
+                await supabase.from('abc_events').insert({ edition_number: next, status: 'planning' });
+                await fetchData();
+              }}
+              className="text-wine/70 hover:text-wine transition-colors"
+            >
+              + New edition
+            </button>
           </div>
         </div>
       </section>
