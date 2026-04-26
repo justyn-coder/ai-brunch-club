@@ -16,6 +16,7 @@ module.exports = {
         'forest-soft': '#D4DDC9',
         ash: '#9A9085',
         'ash-soft': '#E4DDD1',
+        alert: '#A33042',
       },
       fontFamily: {
         display: ['Fraunces', 'Georgia', 'serif'],

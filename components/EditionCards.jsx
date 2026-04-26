@@ -90,11 +90,11 @@ export default function EditionCards({ eventId }) {
           <PinkyMark size={42} className="text-wine" />
           <div>
             <div className="font-display italic font-light text-[18px] leading-none tracking-tight">A.B.C.</div>
-            <div className="text-[9px] uppercase tracking-[0.22em] text-wine/55 mt-1">Vol. I · New Toronto</div>
+            <div className="text-[11px] uppercase tracking-[0.16em] text-wine/75 mt-1">Vol. I · New Toronto</div>
           </div>
         </Link>
         <div className="text-right">
-          <div className="text-[9px] uppercase tracking-[0.22em] text-forest">Pre-brunch missive</div>
+          <div className="text-[11px] uppercase tracking-[0.16em] text-forest">Pre-brunch missive</div>
           <div className="font-display italic font-light text-[14px] mt-1 tracking-tight">
             Brunch № {editionLabel}
           </div>
@@ -106,9 +106,9 @@ export default function EditionCards({ eventId }) {
         <div className="flex items-baseline justify-between gap-4 flex-wrap">
           <div>
             <h1 className="font-display text-3xl sm:text-[44px] font-medium tracking-tight text-wine">
-              Seed cards<span className="text-butter">.</span>
+              Seed cards<span className="text-forest">.</span>
             </h1>
-            <p className="text-[13px] text-wine/65 mt-2 max-w-md leading-[1.55]">
+            <p className="text-[15px] text-wine/85 mt-2 max-w-md leading-[1.55]">
               Three sharp openers per guest, set on a small card. Print, fold, place beside the cutlery.
             </p>
           </div>
@@ -116,7 +116,7 @@ export default function EditionCards({ eventId }) {
             <button
               onClick={generateAll}
               disabled={generatingAll || seedableGuests.length === 0}
-              className="text-[11px] uppercase tracking-[0.18em] text-pinky-bright hover:text-wine disabled:opacity-40"
+              className="text-[11px] uppercase tracking-[0.18em] text-forest hover:text-wine-soft disabled:opacity-40 font-medium"
             >
               {generatingAll ? 'Composing…' : '+ Compose all'}
             </button>
@@ -129,7 +129,7 @@ export default function EditionCards({ eventId }) {
           </div>
         </div>
         {error && (
-          <p className="text-[12px] text-pinky-bright italic mt-4">{error}</p>
+          <p className="text-[14px] text-alert font-medium mt-4">{error}</p>
         )}
       </section>
 
@@ -185,14 +185,14 @@ function SeedCard({ guest, edition, dateLine, onGenerate, generating }) {
           <div className="font-display italic font-light text-[14px] tracking-tight">
             A.B.C.
           </div>
-          <div className="text-[8px] uppercase tracking-[0.24em] text-wine/55">
+          <div className="text-[10px] uppercase tracking-[0.18em] text-wine/75">
             № {edition}
           </div>
         </header>
 
         {/* GUEST NAME */}
         <div className="mt-5">
-          <div className="text-[8px] uppercase tracking-[0.24em] text-forest mb-1.5">Guest of honour</div>
+          <div className="text-[10px] uppercase tracking-[0.18em] text-forest mb-1.5">Guest of honour</div>
           <div className="font-display font-medium text-wine leading-[1.05] tracking-tight"
                style={{ fontSize: 'clamp(22px, 4vw, 30px)' }}>
             {guest.name}
@@ -205,10 +205,10 @@ function SeedCard({ guest, edition, dateLine, onGenerate, generating }) {
             <ol className="space-y-3.5">
               {questions.map((q, i) => (
                 <li key={i} className="flex gap-3">
-                  <span className="font-display italic font-light text-butter text-lg leading-none shrink-0 mt-0.5">
+                  <span className="font-display italic font-light text-forest text-lg leading-none shrink-0 mt-0.5">
                     {String(i + 1).padStart(2, '0')}.
                   </span>
-                  <span className="font-display italic font-light text-[14px] text-wine/85 leading-[1.5]">
+                  <span className="font-display italic font-light text-[15px] text-wine/85 leading-[1.55]">
                     {q}
                   </span>
                 </li>
@@ -219,7 +219,7 @@ function SeedCard({ guest, edition, dateLine, onGenerate, generating }) {
               <button
                 onClick={onGenerate}
                 disabled={generating}
-                className="text-[11px] uppercase tracking-[0.18em] text-pinky-bright hover:text-wine disabled:opacity-40"
+                className="text-[11px] uppercase tracking-[0.18em] text-forest hover:text-wine-soft disabled:opacity-40 font-medium"
               >
                 {generating ? 'Composing…' : '+ Compose three'}
               </button>
@@ -229,7 +229,7 @@ function SeedCard({ guest, edition, dateLine, onGenerate, generating }) {
 
         {/* FOOTER — date */}
         <footer className="border-t border-wine/30 pt-2.5 mt-4">
-          <div className="flex items-center justify-between text-[8px] uppercase tracking-[0.24em] text-wine/55">
+          <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-wine/75">
             <span>Pinky Swear · New Toronto</span>
             <span className="font-display italic normal-case tracking-normal text-[11px] text-wine/65">
               {dateLine}

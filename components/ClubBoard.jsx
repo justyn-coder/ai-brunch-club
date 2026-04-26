@@ -125,11 +125,11 @@ export default function ClubBoard() {
             <PinkyMark size={42} className="text-wine" />
             <div>
               <div className="font-display italic font-light text-[18px] leading-none tracking-tight">A.B.C.</div>
-              <div className="text-[9px] uppercase tracking-[0.22em] text-wine/55 mt-1">Vol. I · New Toronto</div>
+              <div className="text-[11px] uppercase tracking-[0.16em] text-wine/75 mt-1">Vol. I · New Toronto</div>
             </div>
           </div>
           <div className="text-right">
-            <div className="text-[9px] uppercase tracking-[0.22em] text-wine/55">Members</div>
+            <div className="text-[11px] uppercase tracking-[0.16em] text-wine/75">Members</div>
             <div className="font-display italic font-light text-[14px] mt-1 tracking-tight">
               Justyn · Brad · John
             </div>
@@ -143,15 +143,9 @@ export default function ClubBoard() {
           <div className="reveal relative">
             <div
               className="font-display italic font-extralight text-wine"
-              style={{ fontSize: 'clamp(140px, 26vw, 280px)', lineHeight: 0.78, letterSpacing: '-0.04em', marginTop: '-0.06em' }}
+              style={{ fontSize: 'clamp(120px, 24vw, 260px)', lineHeight: 0.82, letterSpacing: '-0.04em', marginTop: '-0.04em' }}
             >
               AI
-            </div>
-            <div
-              className="hidden sm:block absolute"
-              style={{ top: 28, left: -10, transform: 'rotate(-90deg)', transformOrigin: 'left top' }}
-            >
-              <span className="text-[9px] uppercase tracking-[0.4em] text-wine/55">An editorial gathering</span>
             </div>
           </div>
 
@@ -192,7 +186,7 @@ export default function ClubBoard() {
               </span>
               {currentEvent ? String(currentEvent.edition_number).padStart(2, '0').charAt(1) : '1'}
             </div>
-            <div className="absolute bottom-1 left-1 text-[9px] uppercase tracking-[0.22em] text-wine/55">
+            <div className="absolute bottom-1 left-1 text-[11px] uppercase tracking-[0.16em] text-wine/75">
               Brunch №
             </div>
           </div>
@@ -216,14 +210,14 @@ export default function ClubBoard() {
             <div className="mt-6 flex items-center gap-4 text-[11px] flex-wrap">
               <button
                 onClick={() => setShowEventEditor(true)}
-                className="uppercase tracking-[0.16em] text-wine/55 hover:text-wine transition-colors"
+                className="uppercase tracking-[0.16em] text-wine/75 hover:text-wine transition-colors"
               >
                 Edit edition
               </button>
               {currentEvent && (
                 <Link
                   href={`/edition/${currentEvent.id}/poll`}
-                  className="uppercase tracking-[0.16em] text-pinky-bright hover:text-wine transition-colors"
+                  className="uppercase tracking-[0.16em] text-forest hover:text-wine-soft transition-colors font-medium"
                 >
                   Date poll →
                 </Link>
@@ -231,7 +225,7 @@ export default function ClubBoard() {
               {currentEvent && (
                 <Link
                   href={`/edition/${currentEvent.id}`}
-                  className="uppercase tracking-[0.16em] text-butter hover:text-wine transition-colors"
+                  className="uppercase tracking-[0.16em] text-forest hover:text-wine transition-colors"
                 >
                   Seed cards →
                 </Link>
@@ -242,7 +236,7 @@ export default function ClubBoard() {
                   await supabase.from('abc_events').insert({ edition_number: next, status: 'planning' });
                   await fetchData();
                 }}
-                className="uppercase tracking-[0.16em] text-wine/55 hover:text-wine transition-colors"
+                className="uppercase tracking-[0.16em] text-wine/75 hover:text-wine transition-colors"
               >
                 + New edition
               </button>
@@ -251,7 +245,7 @@ export default function ClubBoard() {
 
           {/* tally */}
           <div className="text-right min-w-[140px] sm:pl-8 sm:pt-2">
-            <div className="text-[10px] uppercase tracking-[0.22em] text-wine/55 mb-2.5">
+            <div className="text-[10px] uppercase tracking-[0.16em] text-wine/75 mb-2.5">
               Pinky sworn
             </div>
             <div className="flex items-baseline justify-end gap-1.5">
@@ -261,12 +255,12 @@ export default function ClubBoard() {
               >
                 {String(confirmedCount).padStart(2, '0')}
               </span>
-              <span className="font-display italic font-light text-[28px] text-wine/40 tracking-tight">
+              <span className="font-display italic font-light text-[28px] text-wine/65 tracking-tight">
                 /{String(totalSeats).padStart(2, '0')}
               </span>
             </div>
             {pendingCount > 0 && (
-              <div className="text-[9px] uppercase tracking-[0.22em] text-wine/45 mt-3">
+              <div className="text-[11px] uppercase tracking-[0.16em] text-wine/70 mt-3">
                 {pendingCount} awaiting reply
               </div>
             )}
@@ -291,11 +285,11 @@ export default function ClubBoard() {
       <section className="px-6 sm:px-10 max-w-5xl mx-auto mt-6">
         <div className="flex items-baseline justify-between mb-4">
           <h2 className="font-display text-3xl sm:text-[44px] font-medium tracking-tight text-wine">
-            The Roster<span className="text-butter">.</span>
+            The Roster<span className="text-forest">.</span>
           </h2>
           <button
             onClick={() => setShowAddForm(true)}
-            className="text-[10px] uppercase tracking-[0.18em] text-pinky-bright hover:text-wine transition-colors"
+            className="text-[10px] uppercase tracking-[0.18em] text-forest hover:text-wine-soft font-medium transition-colors"
           >
             + Add a guest
           </button>
@@ -312,7 +306,7 @@ export default function ClubBoard() {
             <p className="font-display italic text-wine/60 text-lg">
               No guests on the list yet.
             </p>
-            <p className="text-[12px] uppercase tracking-[0.18em] text-wine/40 mt-3">
+            <p className="text-[12px] uppercase tracking-[0.18em] text-wine/65 mt-3">
               Send the first invite
             </p>
           </div>
@@ -333,7 +327,7 @@ export default function ClubBoard() {
 
       {/* FOOTER */}
       <footer className="px-6 sm:px-10 max-w-5xl mx-auto mt-24 pt-7 border-t border-wine">
-        <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.22em] text-wine/55">
+        <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.16em] text-wine/75">
           <div className="flex items-center gap-2.5">
             <PinkyMark size={22} className="text-wine/70" />
             <span>Est. 2026 · Vol. I</span>
@@ -375,8 +369,8 @@ export default function ClubBoard() {
 /* ---------- Chapter mark ---------- */
 const ROMAN_TONE = {
   I: 'text-pinky-bright',
-  II: 'text-butter',
-  III: 'text-forest',
+  II: 'text-forest',
+  III: 'text-wine-soft',
 };
 function ChapterMark({ roman, label, className = '' }) {
   const tone = ROMAN_TONE[roman] || 'text-pinky-bright';
@@ -386,7 +380,7 @@ function ChapterMark({ roman, label, className = '' }) {
         {roman}.
       </span>
       <span className="hairline flex-1" />
-      <span className="text-[9px] uppercase tracking-[0.22em] text-wine/55">{label}</span>
+      <span className="text-[11px] uppercase tracking-[0.16em] text-wine/75">{label}</span>
     </div>
   );
 }
@@ -424,7 +418,7 @@ function GuestRow({ guest, idx, onEdit, onUpdate }) {
       }}
     >
       {/* drop-cap numeral */}
-      <div className="font-display italic font-light text-2xl sm:text-[28px] text-wine/35 leading-none tracking-tight">
+      <div className="font-display italic font-light text-2xl sm:text-[28px] text-wine/60 leading-none tracking-tight">
         {String(idx + 1).padStart(2, '0')}
       </div>
 
@@ -451,7 +445,7 @@ function GuestRow({ guest, idx, onEdit, onUpdate }) {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="LinkedIn profile"
-              className="text-wine/35 hover:text-wine transition-colors"
+              className="text-wine/60 hover:text-wine transition-colors"
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
@@ -459,7 +453,7 @@ function GuestRow({ guest, idx, onEdit, onUpdate }) {
             </a>
           )}
         </div>
-        <div className="text-[10px] uppercase tracking-[0.18em] text-wine/55 mt-1">
+        <div className="text-[10px] uppercase tracking-[0.18em] text-wine/75 mt-1">
           Inv. {INVITED_BY_LABEL[guest.invited_by] || guest.invited_by}
           <span className="text-wine/30 mx-1.5">·</span>
           <span className="font-display italic text-[12px] tracking-normal normal-case">
@@ -477,7 +471,7 @@ function GuestRow({ guest, idx, onEdit, onUpdate }) {
             }}
           >
             <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-[8px] uppercase tracking-[0.24em] text-forest/85">Dossier</span>
+              <span className="text-[10px] uppercase tracking-[0.18em] text-forest/85">Dossier</span>
               <span className="h-px flex-1 bg-forest/25" />
             </div>
             <p
@@ -640,7 +634,7 @@ function GuestForm({ eventId, guest, onClose, onSaved }) {
           <h3 className="font-display text-2xl text-wine tracking-tight">
             {isEdit ? 'Edit guest' : 'New guest'}
           </h3>
-          <button type="button" onClick={onClose} className="text-wine/40 hover:text-wine text-2xl leading-none">×</button>
+          <button type="button" onClick={onClose} className="text-wine/65 hover:text-wine text-2xl leading-none">×</button>
         </div>
 
         <div className="space-y-5">
@@ -698,12 +692,12 @@ function GuestForm({ eventId, guest, onClose, onSaved }) {
           {/* Dossier (AI-composed) */}
           <div>
             <div className="flex items-baseline justify-between mb-2">
-              <div className="text-[10px] uppercase tracking-[0.22em] text-forest">Dossier</div>
+              <div className="text-[10px] uppercase tracking-[0.16em] text-forest">Dossier</div>
               <button
                 type="button"
                 onClick={handleCompose}
                 disabled={composing || !name.trim()}
-                className="text-[10px] uppercase tracking-[0.18em] text-pinky-bright hover:text-wine disabled:opacity-40"
+                className="text-[10px] uppercase tracking-[0.18em] text-forest hover:text-wine-soft font-medium disabled:opacity-40"
               >
                 {composing ? 'Composing…' : dossier ? 'Recompose' : '+ Compose'}
               </button>
@@ -718,14 +712,14 @@ function GuestForm({ eventId, guest, onClose, onSaved }) {
               />
             ) : (
               <div className="border border-dashed border-wine/15 rounded-sm px-4 py-5 text-center">
-                <p className="font-display italic text-[13px] text-wine/45">
+                <p className="font-display italic text-[13px] text-wine/70">
                   An editorial paragraph on why this person belongs at the table.
                 </p>
               </div>
             )}
           </div>
 
-          {error && <p className="text-[12px] text-pinky-bright italic">{error}</p>}
+          {error && <p className="text-[14px] text-alert font-medium">{error}</p>}
         </div>
 
         <div className="mt-8 flex items-center justify-between gap-4">
@@ -772,7 +766,7 @@ function GuestForm({ eventId, guest, onClose, onSaved }) {
 function Field({ label, children }) {
   return (
     <label className="block">
-      <div className="text-[10px] uppercase tracking-[0.22em] text-wine/55 mb-2">{label}</div>
+      <div className="text-[10px] uppercase tracking-[0.16em] text-wine/75 mb-2">{label}</div>
       {children}
     </label>
   );
@@ -812,7 +806,7 @@ function EventEditor({ event, onClose, onSaved }) {
       >
         <div className="flex items-center justify-between mb-7">
           <h3 className="font-display text-2xl text-wine tracking-tight">Edit edition</h3>
-          <button type="button" onClick={onClose} className="text-wine/40 hover:text-wine text-2xl leading-none">×</button>
+          <button type="button" onClick={onClose} className="text-wine/65 hover:text-wine text-2xl leading-none">×</button>
         </div>
 
         <div className="space-y-5">
@@ -841,7 +835,7 @@ function EventEditor({ event, onClose, onSaved }) {
           <Field label="Notes">
             <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows="2" className="form-input resize-none" />
           </Field>
-          {error && <p className="text-[12px] text-pinky-bright italic">{error}</p>}
+          {error && <p className="text-[14px] text-alert font-medium">{error}</p>}
         </div>
 
         <div className="mt-8 flex items-center justify-end gap-3">

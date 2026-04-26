@@ -16,7 +16,7 @@ const RESPONSE_TONE = {
   yes: 'bg-forest text-cream border-forest',
   maybe: 'bg-butter text-wine border-butter',
   no: 'bg-ash-soft text-ash border-ash/40',
-  none: 'bg-transparent text-wine/40 border-wine/15',
+  none: 'bg-transparent text-wine/65 border-wine/15',
 };
 
 function formatLong(d) {
@@ -186,11 +186,11 @@ export default function DatePoll({ eventId }) {
           <PinkyMark size={42} className="text-wine" />
           <div>
             <div className="font-display italic font-light text-[18px] leading-none tracking-tight">A.B.C.</div>
-            <div className="text-[9px] uppercase tracking-[0.22em] text-wine/55 mt-1">Vol. I · New Toronto</div>
+            <div className="text-[11px] uppercase tracking-[0.16em] text-wine/75 mt-1">Vol. I · New Toronto</div>
           </div>
         </Link>
         <div className="text-right">
-          <div className="text-[9px] uppercase tracking-[0.22em] text-pinky-bright">Date poll</div>
+          <div className="text-[10px] uppercase tracking-[0.16em] text-forest font-semibold">Date poll</div>
           <div className="font-display italic font-light text-[14px] mt-1 tracking-tight">
             Brunch № {editionLabel}
           </div>
@@ -204,7 +204,7 @@ export default function DatePoll({ eventId }) {
             <h1 className="font-display text-3xl sm:text-[44px] font-medium tracking-tight text-wine">
               When shall we meet<span className="text-pinky-bright">?</span>
             </h1>
-            <p className="text-[13px] text-wine/65 mt-2 max-w-md leading-[1.55]">
+            <p className="text-[15px] text-wine/85 mt-2 max-w-md leading-[1.55]">
               Each member marks themselves yes, maybe, or no on each option. We triangulate. Sundays default, since Brad teaches Saturdays.
             </p>
           </div>
@@ -212,7 +212,7 @@ export default function DatePoll({ eventId }) {
 
         {/* WHO ARE YOU */}
         <div className="mt-6 flex items-center gap-3 flex-wrap">
-          <span className="text-[10px] uppercase tracking-[0.22em] text-wine/55">You are</span>
+          <span className="text-[10px] uppercase tracking-[0.16em] text-wine/75">You are</span>
           <div className="flex items-center gap-2">
             {MEMBERS.map((m) => (
               <button
@@ -231,7 +231,7 @@ export default function DatePoll({ eventId }) {
           {activeMember && (
             <button
               onClick={() => setActiveMember(null)}
-              className="text-[10px] uppercase tracking-[0.18em] text-wine/40 hover:text-wine"
+              className="text-[10px] uppercase tracking-[0.18em] text-wine/65 hover:text-wine"
             >
               Switch
             </button>
@@ -245,7 +245,7 @@ export default function DatePoll({ eventId }) {
           allYes ? 'border-forest bg-forest-soft/30' : 'border-butter bg-butter/10'
         }`}>
           <div>
-            <div className="text-[10px] uppercase tracking-[0.22em] text-wine/55">
+            <div className="text-[10px] uppercase tracking-[0.16em] text-wine/75">
               {allYes ? 'Three pinkies up' : 'Leading candidate'}
             </div>
             <div className="font-display italic font-light text-xl sm:text-2xl tracking-tight mt-0.5">
@@ -278,7 +278,7 @@ export default function DatePoll({ eventId }) {
             </p>
             <button
               onClick={() => setShowAdd(true)}
-              className="mt-4 text-[11px] uppercase tracking-[0.18em] text-pinky-bright hover:text-wine"
+              className="mt-4 text-[11px] uppercase tracking-[0.18em] text-forest hover:text-wine-soft font-medium"
             >
               + Propose Sundays
             </button>
@@ -307,7 +307,7 @@ export default function DatePoll({ eventId }) {
       <div className="mt-6 flex items-center gap-4">
         <button
           onClick={() => setShowAdd(true)}
-          className="text-[11px] uppercase tracking-[0.18em] text-pinky-bright hover:text-wine"
+          className="text-[11px] uppercase tracking-[0.18em] text-forest hover:text-wine-soft font-medium"
         >
           + Propose another date
         </button>
@@ -322,14 +322,14 @@ export default function DatePoll({ eventId }) {
               }
               await fetchAll();
             }}
-            className="text-[11px] uppercase tracking-[0.18em] text-butter hover:text-wine"
+            className="text-[11px] uppercase tracking-[0.18em] text-forest hover:text-wine"
           >
             ✨ Auto-propose 4 Sundays
           </button>
         )}
       </div>
 
-      {error && <p className="text-[12px] text-pinky-bright italic mt-3">{error}</p>}
+      {error && <p className="text-[14px] text-alert font-medium mt-3">{error}</p>}
 
       {showAdd && (
         <ProposeDateModal
@@ -339,7 +339,7 @@ export default function DatePoll({ eventId }) {
         />
       )}
 
-      <Link href="/" className="inline-block mt-12 text-[11px] uppercase tracking-[0.18em] text-wine/55 hover:text-wine">
+      <Link href="/" className="inline-block mt-12 text-[11px] uppercase tracking-[0.18em] text-wine/75 hover:text-wine">
         ← Back to the front page
       </Link>
     </main>
@@ -355,7 +355,7 @@ function OptionRow({ opt, idx, isLocked, responseFor, activeMember, onResponse, 
       style={{ gridTemplateColumns: '36px 1fr auto' }}
     >
       {/* numeral */}
-      <div className="font-display italic font-light text-2xl sm:text-[28px] text-wine/35 leading-none tracking-tight">
+      <div className="font-display italic font-light text-2xl sm:text-[28px] text-wine/60 leading-none tracking-tight">
         {String(idx + 1).padStart(2, '0')}
       </div>
 
@@ -364,17 +364,17 @@ function OptionRow({ opt, idx, isLocked, responseFor, activeMember, onResponse, 
         <div className="font-display text-lg sm:text-[22px] font-medium text-wine tracking-tight">
           {formatLong(opt.proposed_date)}
           {opt.proposed_time && (
-            <span className="text-wine/55 font-light italic ml-2">· {opt.proposed_time}</span>
+            <span className="text-wine/75 font-light italic ml-2">· {opt.proposed_time}</span>
           )}
           {isLocked && (
-            <span className="ml-3 text-[9px] uppercase tracking-[0.22em] text-forest border border-forest/40 rounded-full px-2 py-0.5">
+            <span className="ml-3 text-[11px] uppercase tracking-[0.16em] text-forest border border-forest/40 rounded-full px-2 py-0.5">
               Locked
             </span>
           )}
         </div>
-        <div className="text-[10px] uppercase tracking-[0.18em] text-wine/45 mt-1">
+        <div className="text-[10px] uppercase tracking-[0.18em] text-wine/70 mt-1">
           {formatShortDow(opt.proposed_date)}
-          <span className="text-wine/25 mx-1.5">·</span>
+          <span className="text-wine/50 mx-1.5">·</span>
           <span>
             {opt.yes} yes · {opt.maybe} maybe · {opt.no} no
           </span>
@@ -401,7 +401,7 @@ function OptionRow({ opt, idx, isLocked, responseFor, activeMember, onResponse, 
           <button
             onClick={onDelete}
             aria-label="Remove option"
-            className="ml-2 text-wine/25 hover:text-pinky-bright text-lg leading-none"
+            className="ml-2 text-wine/50 hover:text-pinky-bright text-lg leading-none"
           >
             ×
           </button>
@@ -488,25 +488,25 @@ function ProposeDateModal({ activeMember, onClose, onAdd }) {
       >
         <div className="flex items-center justify-between mb-7">
           <h3 className="font-display text-2xl text-wine tracking-tight">Propose a date</h3>
-          <button type="button" onClick={onClose} className="text-wine/40 hover:text-wine text-2xl leading-none">×</button>
+          <button type="button" onClick={onClose} className="text-wine/65 hover:text-wine text-2xl leading-none">×</button>
         </div>
         <div className="space-y-5">
           <label className="block">
-            <div className="text-[10px] uppercase tracking-[0.22em] text-wine/55 mb-2">Date</div>
+            <div className="text-[10px] uppercase tracking-[0.16em] text-wine/75 mb-2">Date</div>
             <input
               type="date" required value={date} onChange={(e) => setDate(e.target.value)}
               className="w-full bg-cream-deep/50 border border-wine/15 rounded-sm px-3.5 py-2.5 text-wine text-sm outline-none"
             />
           </label>
           <label className="block">
-            <div className="text-[10px] uppercase tracking-[0.22em] text-wine/55 mb-2">Time (optional)</div>
+            <div className="text-[10px] uppercase tracking-[0.16em] text-wine/75 mb-2">Time (optional)</div>
             <input
               type="text" value={time} onChange={(e) => setTime(e.target.value)} placeholder="11:00 AM"
               className="w-full bg-cream-deep/50 border border-wine/15 rounded-sm px-3.5 py-2.5 text-wine text-sm outline-none"
             />
           </label>
           {!activeMember && (
-            <p className="text-[11px] italic text-wine/55">
+            <p className="text-[11px] italic text-wine/75">
               Pick who you are on the previous screen if you want this proposal attributed.
             </p>
           )}
