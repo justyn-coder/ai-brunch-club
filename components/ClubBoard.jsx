@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import { waGuestInvite, waShareToGroup } from '@/lib/whatsapp';
 import PinkyMark from './PinkyMark';
 
 const STATUS_LABELS = {
@@ -120,7 +121,7 @@ export default function ClubBoard() {
 
   const confirmedCount = currentGuests.filter((g) => g.status === 'confirmed').length;
   const pendingCount = currentGuests.filter((g) => g.status === 'invited' || g.status === 'maybe').length;
-  const totalSeats = Math.max(currentGuests.length, 6);
+  const totalSeats = Math.max(currentGuests.length, 3);
 
   return (
     <main className="min-h-screen pb-32">
@@ -169,7 +170,7 @@ export default function ClubBoard() {
               </p>
             </div>
             <p className="mt-7 max-w-md text-[15px] leading-[1.65] text-wine/85">
-              A standing date with two guests of honour. Conversation is the menu. Eggs go cold. Ideas don&apos;t.
+              A standing date with two or three guests of honour. Conversation is the menu. Eggs go cold. Ideas don&apos;t.
             </p>
           </div>
         </div>
@@ -308,6 +309,28 @@ export default function ClubBoard() {
             >
               Edit edition
             </button>
+            {currentEvent && (
+              <>
+                <span className="text-wine/30">·</span>
+                <a
+                  href={waShareToGroup({ event: currentEvent, kind: 'poll' })}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-forest hover:text-wine-soft font-medium transition-colors flex items-center gap-1.5"
+                >
+                  <WaIcon /> Share poll to group
+                </a>
+                <span className="text-wine/30">·</span>
+                <a
+                  href={waShareToGroup({ event: currentEvent, kind: 'cards' })}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-forest hover:text-wine-soft font-medium transition-colors flex items-center gap-1.5"
+                >
+                  <WaIcon /> Share cards
+                </a>
+              </>
+            )}
             <span className="text-wine/30">·</span>
             <button
               onClick={async () => {
@@ -361,6 +384,7 @@ export default function ClubBoard() {
               <GuestRow
                 key={guest.id}
                 guest={guest}
+                event={currentEvent}
                 idx={i}
                 onEdit={() => setEditingId(guest.id)}
                 onUpdate={fetchData}
@@ -386,6 +410,7 @@ export default function ClubBoard() {
       {showAddForm && currentEvent && (
         <GuestForm
           eventId={currentEvent.id}
+          event={currentEvent}
           onClose={() => setShowAddForm(false)}
           onSaved={() => { setShowAddForm(false); fetchData(); }}
         />
@@ -394,6 +419,7 @@ export default function ClubBoard() {
       {editingId && (
         <GuestForm
           eventId={currentEvent?.id}
+          event={currentEvent}
           guest={guests.find((g) => g.id === editingId)}
           onClose={() => setEditingId(null)}
           onSaved={() => { setEditingId(null); fetchData(); }}
@@ -408,6 +434,15 @@ export default function ClubBoard() {
         />
       )}
     </main>
+  );
+}
+
+/* ---------- WhatsApp glyph ---------- */
+function WaIcon({ className = '' }) {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M19.05 4.91A9.82 9.82 0 0 0 12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01zm-7.01 15.24c-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24 2.2 0 4.27.86 5.83 2.42a8.18 8.18 0 0 1 2.41 5.83c0 4.54-3.7 8.23-8.23 8.23zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.12-.17.25-.64.81-.78.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-2-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.43.12-.14.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.41-.42-.56-.43-.14-.01-.31-.01-.48-.01-.17 0-.43.06-.66.31s-.86.85-.86 2.07.89 2.4 1.01 2.57c.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.67-1.18.21-.58.21-1.07.14-1.18-.06-.11-.22-.17-.47-.29z"/>
+    </svg>
   );
 }
 
@@ -431,7 +466,7 @@ function ChapterMark({ roman, label, className = '' }) {
 }
 
 /* ---------- Roster row ---------- */
-function GuestRow({ guest, idx, onEdit, onUpdate }) {
+function GuestRow({ guest, event, idx, onEdit, onUpdate }) {
   const [updating, setUpdating] = useState(false);
   const [hover, setHover] = useState(false);
 
@@ -541,12 +576,24 @@ function GuestRow({ guest, idx, onEdit, onUpdate }) {
         )}
       </div>
 
-      {/* pill + edit */}
-      <div className="flex items-center gap-2 shrink-0">
+      {/* pill + actions */}
+      <div className="flex items-center gap-3 shrink-0">
         <StatusPill status={guest.status} onChange={quickSetStatus} disabled={updating} />
+        {guest.phone && event && (
+          <a
+            href={waGuestInvite({ guest, event })}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-forest hover:text-wine-soft transition-colors"
+            aria-label="Send WhatsApp invite"
+            title="Send WhatsApp invite"
+          >
+            <WaIcon className="w-[15px] h-[15px]" />
+          </a>
+        )}
         <button
           onClick={onEdit}
-          className="text-wine/30 hover:text-wine transition-colors"
+          className="text-wine/60 hover:text-wine transition-colors"
           aria-label="Edit guest"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -593,10 +640,11 @@ function StatusPill({ status, onChange, disabled }) {
 }
 
 /* ---------- Guest form ---------- */
-function GuestForm({ eventId, guest, onClose, onSaved }) {
+function GuestForm({ eventId, guest, event, onClose, onSaved }) {
   const isEdit = !!guest;
   const [name, setName] = useState(guest?.name || '');
   const [linkedinUrl, setLinkedinUrl] = useState(guest?.linkedin_url || '');
+  const [phone, setPhone] = useState(guest?.phone || '');
   const [invitedBy, setInvitedBy] = useState(guest?.invited_by || 'justyn');
   const [status, setStatus] = useState(guest?.status || 'invited');
   const [notes, setNotes] = useState(guest?.notes || '');
@@ -638,6 +686,7 @@ function GuestForm({ eventId, guest, onClose, onSaved }) {
       event_id: eventId,
       name: name.trim(),
       linkedin_url: linkedinUrl.trim() || null,
+      phone: phone.trim() || null,
       invited_by: invitedBy,
       status,
       notes: notes.trim() || null,
@@ -689,6 +738,19 @@ function GuestForm({ eventId, guest, onClose, onSaved }) {
 
           <Field label="LinkedIn URL">
             <input type="url" value={linkedinUrl} onChange={(e) => setLinkedinUrl(e.target.value)} placeholder="https://linkedin.com/in/…" className="form-input" />
+          </Field>
+
+          <Field label="WhatsApp number (optional)">
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="+1 416 555 1234"
+              className="form-input"
+            />
+            <div className="text-[11px] text-wine/65 mt-1.5 italic">
+              Include the country code. We use this to pre-fill a WhatsApp invite when you tap Send.
+            </div>
           </Field>
 
           <Field label="Invited by">
@@ -767,6 +829,25 @@ function GuestForm({ eventId, guest, onClose, onSaved }) {
           {error && <p className="text-[14px] text-alert font-medium">{error}</p>}
         </div>
 
+        {isEdit && phone && event && (
+          <div className="mt-6 border-t border-wine/15 pt-5">
+            <a
+              href={waGuestInvite({ guest: { ...guest, name: name.trim() || guest.name, phone }, event })}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-between border border-forest/40 bg-forest-soft/30 hover:bg-forest-soft/55 rounded-sm px-4 py-3 transition-colors"
+            >
+              <span className="flex items-center gap-2.5 text-forest font-medium text-[13px] uppercase tracking-[0.16em]">
+                <WaIcon /> Send WhatsApp invite
+              </span>
+              <span className="text-forest font-display italic text-xl">→</span>
+            </a>
+            <div className="text-[11px] text-wine/65 italic mt-2">
+              Opens WhatsApp with a draft message ready to send. Edit before sending if you like.
+            </div>
+          </div>
+        )}
+
         <div className="mt-8 flex items-center justify-between gap-4">
           <div>
             {isEdit && (
@@ -774,14 +855,14 @@ function GuestForm({ eventId, guest, onClose, onSaved }) {
                 type="button"
                 onClick={handleDelete}
                 disabled={deleting}
-                className="text-[11px] uppercase tracking-[0.18em] text-ash hover:text-pinky-bright disabled:opacity-50"
+                className="text-[11px] uppercase tracking-[0.18em] text-ash hover:text-alert disabled:opacity-50 font-medium"
               >
                 {deleting ? 'Removing…' : 'Remove guest'}
               </button>
             )}
           </div>
           <div className="flex items-center gap-3">
-            <button type="button" onClick={onClose} className="text-[11px] uppercase tracking-[0.18em] text-wine/50 hover:text-wine">
+            <button type="button" onClick={onClose} className="text-[11px] uppercase tracking-[0.18em] text-wine/65 hover:text-wine">
               Cancel
             </button>
             <button type="submit" disabled={!name || saving} className="bg-wine text-cream px-6 py-2.5 text-[11px] uppercase tracking-[0.18em] rounded-sm hover:bg-wine-soft disabled:opacity-40">
@@ -823,6 +904,7 @@ function EventEditor({ event, onClose, onSaved }) {
   const [editionNumber, setEditionNumber] = useState(event?.edition_number || 1);
   const [status, setStatus] = useState(event?.status || 'planning');
   const [notes, setNotes] = useState(event?.notes || '');
+  const [waUrl, setWaUrl] = useState(event?.whatsapp_invite_url || '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -835,6 +917,7 @@ function EventEditor({ event, onClose, onSaved }) {
       event_date: eventDate || null,
       status,
       notes: notes.trim() || null,
+      whatsapp_invite_url: waUrl.trim() || null,
     };
     const { error: err } = await supabase.from('abc_events').update(payload).eq('id', event.id);
     setSaving(false);
@@ -879,6 +962,18 @@ function EventEditor({ event, onClose, onSaved }) {
           </Field>
           <Field label="Notes">
             <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows="2" className="form-input resize-none" />
+          </Field>
+          <Field label="WhatsApp group invite link">
+            <input
+              type="url"
+              value={waUrl}
+              onChange={(e) => setWaUrl(e.target.value)}
+              placeholder="https://chat.whatsapp.com/…"
+              className="form-input"
+            />
+            <div className="text-[11px] text-wine/65 mt-1.5 italic">
+              Paste your group's invite link once. Used to invite guests in one tap.
+            </div>
           </Field>
           {error && <p className="text-[14px] text-alert font-medium">{error}</p>}
         </div>

@@ -2,11 +2,11 @@ import './globals.css';
 
 export const metadata = {
   title: 'AI Brunch Club',
-  description: 'Residency at Pinky Swear, New Toronto. Members only. Two guests per table.',
+  description: 'Residency at Pinky Swear, New Toronto. Members only. Two or three guests per table.',
   metadataBase: new URL('https://ai-brunch-club.vercel.app'),
   openGraph: {
     title: 'AI Brunch Club',
-    description: 'Residency at Pinky Swear, New Toronto. Members only. Two guests per table.',
+    description: 'Residency at Pinky Swear, New Toronto. Members only. Two or three guests per table.',
     type: 'website',
     locale: 'en_CA',
   },
