@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import PinkyMark from './PinkyMark';
 
@@ -198,9 +199,6 @@ export default function ClubBoard() {
 
           {/* hairline rule + hung copy */}
           <div className="sm:border-l sm:border-wine sm:pl-8 sm:self-stretch sm:pt-2">
-            <div className="text-[10px] uppercase tracking-[0.22em] text-wine/55 mb-2.5">
-              The next gathering
-            </div>
             <div className="font-display italic font-light text-2xl sm:text-[28px] leading-[1.15] tracking-tight max-w-md">
               {currentEvent?.event_date ? formatLongDate(currentEvent.event_date) : 'Date to be sworn'}
             </div>
@@ -215,13 +213,21 @@ export default function ClubBoard() {
                 &ldquo;{currentEvent.notes}&rdquo;
               </p>
             )}
-            <div className="mt-6 flex items-center gap-4 text-[11px]">
+            <div className="mt-6 flex items-center gap-4 text-[11px] flex-wrap">
               <button
                 onClick={() => setShowEventEditor(true)}
                 className="uppercase tracking-[0.16em] text-wine/55 hover:text-wine transition-colors"
               >
                 Edit edition
               </button>
+              {currentEvent && (
+                <Link
+                  href={`/edition/${currentEvent.id}`}
+                  className="uppercase tracking-[0.16em] text-butter hover:text-wine transition-colors"
+                >
+                  Seed cards →
+                </Link>
+              )}
               <button
                 onClick={async () => {
                   const next = (events.reduce((m, e) => Math.max(m, e.edition_number), 0) || 0) + 1;
@@ -277,7 +283,7 @@ export default function ClubBoard() {
       <section className="px-6 sm:px-10 max-w-5xl mx-auto mt-6">
         <div className="flex items-baseline justify-between mb-4">
           <h2 className="font-display text-3xl sm:text-[44px] font-medium tracking-tight text-wine">
-            The Roster<span className="text-pinky-bright">.</span>
+            The Roster<span className="text-butter">.</span>
           </h2>
           <button
             onClick={() => setShowAddForm(true)}
@@ -359,10 +365,16 @@ export default function ClubBoard() {
 }
 
 /* ---------- Chapter mark ---------- */
+const ROMAN_TONE = {
+  I: 'text-pinky-bright',
+  II: 'text-butter',
+  III: 'text-forest',
+};
 function ChapterMark({ roman, label, className = '' }) {
+  const tone = ROMAN_TONE[roman] || 'text-pinky-bright';
   return (
     <div className={`flex items-center gap-3.5 reveal ${className}`}>
-      <span className="font-display italic font-light text-[22px] tracking-tight text-pinky-bright">
+      <span className={`font-display italic font-light text-[22px] tracking-tight ${tone}`}>
         {roman}.
       </span>
       <span className="hairline flex-1" />
@@ -446,7 +458,28 @@ function GuestRow({ guest, idx, onEdit, onUpdate }) {
             {formatDate(guest.invited_at)}
           </span>
         </div>
-        {guest.notes && (
+        {guest.dossier && (
+          <div
+            className="overflow-hidden"
+            style={{
+              maxHeight: hover ? 220 : 0,
+              opacity: hover ? 1 : 0,
+              marginTop: hover ? 8 : 0,
+              transition: 'max-height 360ms ease, opacity 320ms ease, margin-top 320ms ease',
+            }}
+          >
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="text-[8px] uppercase tracking-[0.24em] text-forest/85">Dossier</span>
+              <span className="h-px flex-1 bg-forest/25" />
+            </div>
+            <p
+              className="font-display italic font-light text-[13.5px] text-wine/75 leading-[1.55] max-w-2xl"
+            >
+              {guest.dossier}
+            </p>
+          </div>
+        )}
+        {!guest.dossier && guest.notes && (
           <div
             className="font-display italic font-light text-[13px] text-wine/60 leading-[1.5] overflow-hidden"
             style={{
@@ -512,7 +545,7 @@ function StatusPill({ status, onChange, disabled }) {
   );
 }
 
-/* ---------- Guest form (logic unchanged) ---------- */
+/* ---------- Guest form ---------- */
 function GuestForm({ eventId, guest, onClose, onSaved }) {
   const isEdit = !!guest;
   const [name, setName] = useState(guest?.name || '');
@@ -520,9 +553,35 @@ function GuestForm({ eventId, guest, onClose, onSaved }) {
   const [invitedBy, setInvitedBy] = useState(guest?.invited_by || 'justyn');
   const [status, setStatus] = useState(guest?.status || 'invited');
   const [notes, setNotes] = useState(guest?.notes || '');
+  const [dossier, setDossier] = useState(guest?.dossier || '');
+  const [composing, setComposing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState('');
+
+  async function handleCompose() {
+    if (!name.trim()) { setError('Name first.'); return; }
+    setComposing(true);
+    setError('');
+    try {
+      const res = await fetch('/api/dossier', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name.trim(),
+          linkedin_url: linkedinUrl.trim(),
+          notes: notes.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Compose failed.');
+      setDossier(data.dossier);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setComposing(false);
+    }
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -535,7 +594,11 @@ function GuestForm({ eventId, guest, onClose, onSaved }) {
       invited_by: invitedBy,
       status,
       notes: notes.trim() || null,
+      dossier: dossier.trim() || null,
     };
+    if (dossier.trim() && dossier.trim() !== (guest?.dossier || '')) {
+      payload.dossier_generated_at = new Date().toISOString();
+    }
     if (status === 'confirmed' || status === 'declined') {
       payload.responded_at = guest?.responded_at || new Date().toISOString();
     }
@@ -623,6 +686,36 @@ function GuestForm({ eventId, guest, onClose, onSaved }) {
           <Field label="Notes">
             <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows="3" placeholder="Why we want them at the table" className="form-input resize-none" />
           </Field>
+
+          {/* Dossier (AI-composed) */}
+          <div>
+            <div className="flex items-baseline justify-between mb-2">
+              <div className="text-[10px] uppercase tracking-[0.22em] text-forest">Dossier</div>
+              <button
+                type="button"
+                onClick={handleCompose}
+                disabled={composing || !name.trim()}
+                className="text-[10px] uppercase tracking-[0.18em] text-pinky-bright hover:text-wine disabled:opacity-40"
+              >
+                {composing ? 'Composing…' : dossier ? 'Recompose' : '+ Compose'}
+              </button>
+            </div>
+            {dossier ? (
+              <textarea
+                value={dossier}
+                onChange={(e) => setDossier(e.target.value)}
+                rows="5"
+                className="form-input resize-none italic"
+                style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: 14, lineHeight: 1.6 }}
+              />
+            ) : (
+              <div className="border border-dashed border-wine/15 rounded-sm px-4 py-5 text-center">
+                <p className="font-display italic text-[13px] text-wine/45">
+                  An editorial paragraph on why this person belongs at the table.
+                </p>
+              </div>
+            )}
+          </div>
 
           {error && <p className="text-[12px] text-pinky-bright italic">{error}</p>}
         </div>
