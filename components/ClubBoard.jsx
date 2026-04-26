@@ -1060,6 +1060,7 @@ function EventEditor({ event, onClose, onSaved }) {
   const [notes, setNotes] = useState(event?.notes || '');
   const [waUrl, setWaUrl] = useState(event?.whatsapp_invite_url || '');
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState('');
 
   async function handleSubmit(e) {
@@ -1075,6 +1076,25 @@ function EventEditor({ event, onClose, onSaved }) {
     };
     const { error: err } = await supabase.from('abc_events').update(payload).eq('id', event.id);
     setSaving(false);
+    if (err) { setError(err.message); return; }
+    onSaved();
+  }
+
+  async function handleDelete() {
+    if (!event) return;
+    const { count } = await supabase
+      .from('abc_guests')
+      .select('id', { count: 'exact', head: true })
+      .eq('event_id', event.id);
+    const hasGuests = (count || 0) > 0;
+    const message = hasGuests
+      ? `This edition has ${count} guest${count === 1 ? '' : 's'} attached. Removing the edition will also remove its roster and any date poll. Continue?`
+      : `Remove Brunch № ${String(event.edition_number).padStart(2, '0')}? It has no guests and no date poll responses.`;
+    if (!confirm(message)) return;
+    setDeleting(true);
+    setError('');
+    const { error: err } = await supabase.from('abc_events').delete().eq('id', event.id);
+    setDeleting(false);
     if (err) { setError(err.message); return; }
     onSaved();
   }
@@ -1132,11 +1152,21 @@ function EventEditor({ event, onClose, onSaved }) {
           {error && <p className="text-[14px] text-alert font-medium">{error}</p>}
         </div>
 
-        <div className="mt-8 flex items-center justify-end gap-3">
-          <button type="button" onClick={onClose} className="text-[11px] uppercase tracking-[0.18em] text-wine/50 hover:text-wine">Cancel</button>
-          <button type="submit" disabled={saving} className="bg-wine text-cream px-6 py-2.5 text-[11px] uppercase tracking-[0.18em] rounded-sm hover:bg-wine-soft disabled:opacity-40">
-            {saving ? 'Saving…' : 'Save'}
+        <div className="mt-8 flex items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={deleting || saving}
+            className="text-[11px] uppercase tracking-[0.18em] text-ash hover:text-alert disabled:opacity-40 font-medium"
+          >
+            {deleting ? 'Removing…' : 'Remove edition'}
           </button>
+          <div className="flex items-center gap-3">
+            <button type="button" onClick={onClose} className="text-[11px] uppercase tracking-[0.18em] text-wine/65 hover:text-wine">Cancel</button>
+            <button type="submit" disabled={saving} className="bg-wine text-cream px-6 py-2.5 text-[11px] uppercase tracking-[0.18em] rounded-sm hover:bg-wine-soft disabled:opacity-40">
+              {saving ? 'Saving…' : 'Save'}
+            </button>
+          </div>
         </div>
       </form>
       <style jsx>{`
