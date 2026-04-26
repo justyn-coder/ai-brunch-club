@@ -54,70 +54,87 @@ export default async function OgImage() {
           display: 'flex',
           flexDirection: 'column',
           background: '#F4EDE0',
-          padding: '72px 88px',
+          padding: '56px 72px',
           fontFamily: 'serif',
           color: '#3A1622',
         }}
       >
+        {/* HEADER */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <svg width="56" height="34" viewBox="0 0 100 60" fill="none" stroke="#3A1622" strokeWidth="3" strokeLinecap="round">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <svg width="48" height="29" viewBox="0 0 100 60" fill="none" stroke="#3A1622" strokeWidth="3" strokeLinecap="round">
               <path d="M 6 18 L 38 18 Q 50 18 50 30 Q 50 42 38 42 L 30 42" />
               <path d="M 94 42 L 62 42 Q 50 42 50 30 Q 50 18 62 18 L 70 18" />
             </svg>
             <span style={{ fontStyle: 'italic', fontSize: 22 }}>A.B.C.</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-            <span style={{ fontSize: 13, letterSpacing: 4, textTransform: 'uppercase', color: 'rgba(58,22,34,0.55)' }}>
+            <span style={{ fontSize: 12, letterSpacing: 4, textTransform: 'uppercase', color: 'rgba(58,22,34,0.55)' }}>
               Members
             </span>
-            <span style={{ fontStyle: 'italic', fontSize: 18, color: 'rgba(58,22,34,0.65)', marginTop: 4 }}>
+            <span style={{ fontStyle: 'italic', fontSize: 17, color: 'rgba(58,22,34,0.7)', marginTop: 4 }}>
               Justyn · Brad · John
             </span>
           </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', marginTop: 38, flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 24 }}>
-            <span style={{ fontSize: 156, fontStyle: 'italic', fontWeight: 300, lineHeight: 0.92, letterSpacing: -6 }}>AI</span>
-            <span style={{ fontSize: 156, fontWeight: 500, lineHeight: 0.92, letterSpacing: -6 }}>Brunch Club</span>
-            <span style={{ fontSize: 156, color: '#F47A86', fontWeight: 500, lineHeight: 0.92 }}>.</span>
+        {/* HERO */}
+        <div style={{ display: 'flex', flexDirection: 'column', marginTop: 36 }}>
+          <span style={{ fontSize: 96, fontStyle: 'italic', fontWeight: 300, lineHeight: 0.92, letterSpacing: -2 }}>
+            AI
+          </span>
+          <div style={{ display: 'flex', alignItems: 'baseline', marginTop: 4 }}>
+            <span style={{ fontSize: 132, fontWeight: 500, lineHeight: 0.92, letterSpacing: -3 }}>
+              Brunch Club
+            </span>
+            <span style={{ fontSize: 132, color: '#F47A86', fontWeight: 500, lineHeight: 0.92 }}>.</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 38 }}>
-            <div style={{ width: 64, height: 1, background: 'rgba(58,22,34,0.35)' }} />
-            <span style={{ fontStyle: 'italic', fontSize: 28, color: 'rgba(58,22,34,0.75)' }}>
-              Founded at Pinky Swear, Etobicoke.
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 28 }}>
+            <div style={{ width: 56, height: 1, background: 'rgba(58,22,34,0.35)' }} />
+            <span style={{ fontStyle: 'italic', fontSize: 24, color: 'rgba(58,22,34,0.75)' }}>
+              Residency at Pinky Swear, New Toronto.
             </span>
           </div>
         </div>
 
+        {/* SPACER */}
+        <div style={{ display: 'flex', flex: 1 }} />
+
+        {/* FOOTER */}
         <div
           style={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'flex-end',
-            paddingTop: 32,
-            borderTop: '1px solid rgba(58,22,34,0.18)',
+            paddingTop: 24,
+            borderTop: '1px solid rgba(58,22,34,0.2)',
           }}
         >
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontSize: 13, letterSpacing: 4, textTransform: 'uppercase', color: 'rgba(58,22,34,0.5)' }}>
+            <span style={{ fontSize: 12, letterSpacing: 4, textTransform: 'uppercase', color: 'rgba(58,22,34,0.5)' }}>
               The next gathering
             </span>
-            <span style={{ fontSize: 38, fontWeight: 500, marginTop: 8, letterSpacing: -1 }}>{editionLabel}</span>
-            <span style={{ fontSize: 22, fontStyle: 'italic', color: 'rgba(58,22,34,0.7)', marginTop: 4 }}>
+            <span style={{ fontSize: 30, fontWeight: 500, marginTop: 6, letterSpacing: -0.5 }}>
+              {editionLabel}
+            </span>
+            <span style={{ fontSize: 19, fontStyle: 'italic', color: 'rgba(58,22,34,0.7)', marginTop: 2 }}>
               {dateLabel}
             </span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-            <span style={{ fontSize: 13, letterSpacing: 4, textTransform: 'uppercase', color: 'rgba(58,22,34,0.5)' }}>
+            <span style={{ fontSize: 12, letterSpacing: 4, textTransform: 'uppercase', color: 'rgba(58,22,34,0.5)' }}>
               Pinky sworn
             </span>
-            <span style={{ fontSize: 110, color: '#F47A86', fontWeight: 500, lineHeight: 1 }}>
-              {String(confirmed).padStart(2, '0')}
-            </span>
+            <div style={{ display: 'flex', alignItems: 'baseline', marginTop: 4 }}>
+              <span style={{ fontSize: 84, color: '#F47A86', fontWeight: 500, lineHeight: 1, letterSpacing: -2 }}>
+                {String(confirmed).padStart(2, '0')}
+              </span>
+              <span style={{ fontSize: 30, fontStyle: 'italic', color: 'rgba(58,22,34,0.4)', marginLeft: 4 }}>
+                /06
+              </span>
+            </div>
             {pending > 0 && (
-              <span style={{ fontSize: 16, fontStyle: 'italic', color: 'rgba(58,22,34,0.55)', marginTop: 4 }}>
+              <span style={{ fontSize: 14, fontStyle: 'italic', color: 'rgba(58,22,34,0.55)', marginTop: 4 }}>
                 {pending} awaiting reply
               </span>
             )}

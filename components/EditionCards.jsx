@@ -90,7 +90,7 @@ export default function EditionCards({ eventId }) {
           <PinkyMark size={42} className="text-wine" />
           <div>
             <div className="font-display italic font-light text-[18px] leading-none tracking-tight">A.B.C.</div>
-            <div className="text-[9px] uppercase tracking-[0.22em] text-wine/55 mt-1">Vol. I · Etobicoke</div>
+            <div className="text-[9px] uppercase tracking-[0.22em] text-wine/55 mt-1">Vol. I · New Toronto</div>
           </div>
         </Link>
         <div className="text-right">
@@ -230,7 +230,7 @@ function SeedCard({ guest, edition, dateLine, onGenerate, generating }) {
         {/* FOOTER — date */}
         <footer className="border-t border-wine/30 pt-2.5 mt-4">
           <div className="flex items-center justify-between text-[8px] uppercase tracking-[0.24em] text-wine/55">
-            <span>Pinky Swear · Etobicoke</span>
+            <span>Pinky Swear · New Toronto</span>
             <span className="font-display italic normal-case tracking-normal text-[11px] text-wine/65">
               {dateLine}
             </span>

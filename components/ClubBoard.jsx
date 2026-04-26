@@ -125,7 +125,7 @@ export default function ClubBoard() {
             <PinkyMark size={42} className="text-wine" />
             <div>
               <div className="font-display italic font-light text-[18px] leading-none tracking-tight">A.B.C.</div>
-              <div className="text-[9px] uppercase tracking-[0.22em] text-wine/55 mt-1">Vol. I · Etobicoke</div>
+              <div className="text-[9px] uppercase tracking-[0.22em] text-wine/55 mt-1">Vol. I · New Toronto</div>
             </div>
           </div>
           <div className="text-right">
@@ -165,7 +165,7 @@ export default function ClubBoard() {
             <div className="mt-7 flex items-center gap-3">
               <div className="h-px w-9 bg-wine/70" />
               <p className="font-display italic font-light text-base sm:text-lg text-wine">
-                Founded at Pinky Swear, Etobicoke.
+                Residency at Pinky Swear, New Toronto.
               </p>
             </div>
             <p className="mt-7 max-w-md text-[15px] leading-[1.65] text-wine/85">
@@ -205,7 +205,7 @@ export default function ClubBoard() {
             <div className="mt-4 flex items-center gap-2.5">
               <span className="w-1.5 h-1.5 rounded-full bg-pinky-bright" />
               <span className="text-[10px] uppercase tracking-[0.18em] text-wine/65">
-                Pinky Swear · Etobicoke
+                Pinky Swear · New Toronto
               </span>
             </div>
             {currentEvent?.notes && (
@@ -220,6 +220,14 @@ export default function ClubBoard() {
               >
                 Edit edition
               </button>
+              {currentEvent && (
+                <Link
+                  href={`/edition/${currentEvent.id}/poll`}
+                  className="uppercase tracking-[0.16em] text-pinky-bright hover:text-wine transition-colors"
+                >
+                  Date poll →
+                </Link>
+              )}
               {currentEvent && (
                 <Link
                   href={`/edition/${currentEvent.id}`}

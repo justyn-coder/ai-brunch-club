@@ -2,18 +2,18 @@ import './globals.css';
 
 export const metadata = {
   title: 'AI Brunch Club',
-  description: 'Founded at Pinky Swear, Etobicoke. Members only. Two guests per table.',
+  description: 'Residency at Pinky Swear, New Toronto. Members only. Two guests per table.',
   metadataBase: new URL('https://ai-brunch-club.vercel.app'),
   openGraph: {
     title: 'AI Brunch Club',
-    description: 'Founded at Pinky Swear, Etobicoke. Members only. Two guests per table.',
+    description: 'Residency at Pinky Swear, New Toronto. Members only. Two guests per table.',
     type: 'website',
     locale: 'en_CA',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'AI Brunch Club',
-    description: 'Founded at Pinky Swear, Etobicoke.',
+    description: 'Residency at Pinky Swear, New Toronto.',
   },
 };
 
