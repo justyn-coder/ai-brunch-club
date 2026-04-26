@@ -354,7 +354,7 @@ export default function ClubBoard() {
         const featuredQuestion = featured?.seed_questions?.[0];
         const ROMAN = ['i', 'ii', 'iii', 'iv', 'v', 'vi'];
         return (
-          <section className="px-6 sm:px-10 max-w-5xl mx-auto mt-2 mb-20 grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-12 reveal">
+          <section className="px-6 sm:px-10 max-w-5xl mx-auto mt-2 mb-20 grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-12">
             {/* DATE POLL — as a ledger */}
             <div className="relative">
               <div className="flex items-baseline justify-between mb-3 gap-3">
