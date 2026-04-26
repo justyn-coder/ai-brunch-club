@@ -3,10 +3,10 @@ import PinkyMark from '@/components/PinkyMark';
 
 export const metadata = {
   title: 'AI Brunch Club — How it works',
-  description: 'A small editorial dinner club that runs itself. Composed dossiers, a date ledger, printed seed cards, and a WhatsApp loop.',
+  description: 'A small editorial brunch club that runs itself. Composed dossiers, a date ledger, printed seed cards, and a WhatsApp loop.',
   openGraph: {
     title: 'AI Brunch Club — How it works',
-    description: 'A small editorial dinner club that runs itself. Composed dossiers, a date ledger, printed seed cards, and a WhatsApp loop.',
+    description: 'A small editorial brunch club that runs itself. Composed dossiers, a date ledger, printed seed cards, and a WhatsApp loop.',
     type: 'article',
     locale: 'en_CA',
   },
@@ -57,7 +57,7 @@ export default function DemoPage() {
           className="font-display font-medium text-wine tracking-tight"
           style={{ fontSize: 'clamp(36px, 5.6vw, 64px)', lineHeight: 1.05, letterSpacing: '-0.02em' }}
         >
-          A small editorial dinner club<br />needs editorial tools<span className="text-pinky-bright">.</span>
+          A small editorial brunch club<br />needs editorial tools<span className="text-pinky-bright">.</span>
         </h1>
         <p
           className="mt-10 font-display italic font-light text-wine/85 max-w-2xl mx-auto"
@@ -302,7 +302,7 @@ export default function DemoPage() {
             className="font-display italic font-light text-wine/85 mx-auto"
             style={{ fontSize: 'clamp(20px, 2.4vw, 28px)', lineHeight: 1.4, maxWidth: '32ch' }}
           >
-            Built for one residency at Pinky Swear. Could fit any small standing dinner.
+            Built for one residency at Pinky Swear. Could fit any small standing brunch.
           </p>
           <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link

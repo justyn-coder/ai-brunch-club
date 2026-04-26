@@ -37,7 +37,7 @@ export default async function Og() {
           <span style={{
             fontSize: 80, fontWeight: 500, lineHeight: 1.0, letterSpacing: -2, maxWidth: 1000,
           }}>
-            A small editorial dinner club
+            A small editorial brunch club
           </span>
           <span style={{
             fontSize: 80, fontWeight: 500, lineHeight: 1.0, letterSpacing: -2, marginTop: 6,
